@@ -18,6 +18,7 @@ class Vgg16(torch.nn.Module):
             self.slice2.add_module(str(x), vgg_pretrained_features[x])
         for x in range(9, 16):
             self.slice3.add_module(str(x), vgg_pretrained_features[x])
+            print(vgg_pretrained_features[x])
         for x in range(16, 23):
             self.slice4.add_module(str(x), vgg_pretrained_features[x])
         if not requires_grad:
