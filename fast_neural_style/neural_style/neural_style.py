@@ -121,10 +121,10 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
     print("\nDone, trained model saved at", save_model_path)
 
 
-def stylize(has_cuda, content_image_path, output_image_path, model, content_scale=None):
+def stylize(has_cuda, content_image, model, output_image_path = None, content_scale=None):
     device = torch.device("cuda" if has_cuda else "cpu")
 
-    content_image = utils.load_image(content_image_path, scale=content_scale)
+    # content_image = utils.load_image(content_image_path, scale=content_scale)
     content_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Lambda(lambda x: x.mul(255))
@@ -142,7 +142,8 @@ def stylize(has_cuda, content_image_path, output_image_path, model, content_scal
         style_model.load_state_dict(state_dict)
         style_model.to(device)
         output = style_model(content_image).cpu()
-    utils.save_image(output_image_path, output[0])
+    # utils.save_image(output_image_path, output[0])
+    return output[0]
 
 
 def stylize_onnx_caffe2(content_image, args):
@@ -165,12 +166,12 @@ def stylize_onnx_caffe2(content_image, args):
 
 
 def main():
-    has_cuda = 1;
-    content_image_path = "../images/content-images/ofek_garden.jpeg";
-    output_image_path = "../images/output-images/ofek_garden-test.jpg";
-    model = "../models/mosaic.pth";
-    stylize(has_cuda, content_image_path, output_image_path, model);
-
+    # TODO: This Doesn't Work. We changed image_path to image.
+    has_cuda = 1
+    content_image_path = "../images/content-images/ofek_garden.jpg"
+    output_image_path = "../images/output-images/ofek_garden-test.jpg"
+    model = "../models/mosaic.pth"
+    stylize(has_cuda, content_image_path, output_image_path, model)
 
 if __name__ == "__main__":
     main()
