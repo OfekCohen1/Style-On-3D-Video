@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision import transforms
 import torch.onnx
+import fast_neural_style.neural_style.MyDataSet as MyDataSet
 
 import fast_neural_style.neural_style.utils as utils
 from fast_neural_style.neural_style.transformer_net import TransformerNet
@@ -42,7 +43,8 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
         transforms.ToTensor(),
         transforms.Lambda(lambda x: x.mul(255))
     ])
-    train_dataset = datasets.ImageFolder(dataset_path, transform)
+    # train_dataset = datasets.ImageFolder(dataset_path, transform)
+    train_dataset = MyDataSet(dataset_path, transform)
     train_loader = DataLoader(train_dataset, batch_size=batch_size)
 
     transformer = TransformerNet().to(device)
@@ -144,25 +146,6 @@ def stylize(has_cuda, content_image, model, output_image_path = None, content_sc
         output = style_model(content_image).cpu()
     # utils.save_image(output_image_path, output[0])
     return output[0]
-
-
-def stylize_onnx_caffe2(content_image, args):
-    """
-    Read ONNX model and run it using Caffe2
-    """
-
-    assert not args.export_onnx
-
-    import onnx
-    import onnx_caffe2.backend
-
-    model = onnx.load(args.model)
-
-    prepared_backend = onnx_caffe2.backend.prepare(model, device='CUDA' if args.cuda else 'CPU')
-    inp = {model.graph.input[0].name: content_image.numpy()}
-    c2_out = prepared_backend.run(inp)[0]
-
-    return torch.from_numpy(c2_out)
 
 
 def main():
