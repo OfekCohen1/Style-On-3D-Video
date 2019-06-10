@@ -3,6 +3,7 @@ import os
 import sys
 import time
 import re
+from tqdm import tqdm
 
 import numpy as np
 import torch
@@ -16,6 +17,7 @@ from fast_neural_style.neural_style.MyDataSet import MyDataSet
 import fast_neural_style.neural_style.utils as utils
 from fast_neural_style.neural_style.transformer_net import TransformerNet
 from fast_neural_style.neural_style.vgg import Vgg16
+import fast_neural_style.neural_style.losses as losses
 
 
 def check_paths(args):
@@ -42,7 +44,7 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
         transforms.Resize(image_size),
         transforms.CenterCrop(image_size),
         transforms.ToTensor(),
-        transforms.Lambda(lambda x: x.mul(255))  # TODO: Change Normalization to ImageNet Norm
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
     videos_list = os.listdir(dataset_path)
     train_dataset = {}
@@ -50,7 +52,7 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
     for video_name in videos_list:
         video_dataset_path = os.path.join(dataset_path, video_name)
         train_dataset[video_name] = MyDataSet(video_dataset_path, transform)
-        train_loader = DataLoader(train_dataset[video_name], batch_size=batch_size)
+        train_loader[video_name] = DataLoader(train_dataset[video_name], batch_size=batch_size)
 
     transformer_net = TransformerNet().to(device)
     optimizer = Adam(transformer_net.parameters(), lr)
@@ -59,57 +61,46 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
     vgg = Vgg16(requires_grad=False).to(device)
     style_transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Lambda(lambda x: x.mul(255))  # TODO: Change Normalization to ImageNet Norm
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        #TODO : Check if we need to normalize before both VGG and Transformer net
     ])
-    style = utils.load_image(style_image_path, size=style_size)
-    style = style_transform(style)
-    style = style.repeat(batch_size, 1, 1, 1).to(device)
+    style_image = utils.load_image(style_image_path, size=style_size)
+    style_image = style_transform(style_image)
+    style_image = style_image.repeat(batch_size, 1, 1, 1).to(device)
 
-    features_style = vgg(utils.normalize_batch(style))
+    features_style = vgg(style_image)
     gram_style = [utils.gram_matrix(y) for y in features_style]
 
-    for e in range(epochs):
-        transformer_net.train()
-        agg_content_loss = 0.
-        agg_style_loss = 0.
+    for e in tqdm(range(epochs)):
         count = 0
         for video_name in videos_list:
             for batch_num, both_frames in enumerate(train_loader[video_name]):
                 for frame in both_frames:
-                    bath_size = len(frame)
-                    count += bath_size
+                    batch_size = len(frame)
+                    count += batch_size
                     optimizer.zero_grad()
 
                     frame = frame.to(device)
                     frame_style = transformer_net(frame)
 
-                    frame_style = utils.normalize_batch(frame_style)
-                    frame = utils.normalize_batch(frame)
-
+                    # frame_style = utils.normalize_batch(frame_style) # TODO: Check if we need to normalize before VGG
+                    # frame = utils.normalize_batch(frame)
                     features_frame = vgg(frame)
                     features_frame_style = vgg(frame_style)
 
-                    content_loss = content_weight * mse_loss(features_frame.relu2_2, features_frame_style.relu2_2)
+                    content_loss = losses.content_loss(features_frame,features_frame_style)
+                    style_loss = losses.style_loss(features_frame_style, gram_style, batch_size)
 
-                    style_loss = 0.
-                    for ft_frame_style, gm_s in zip(features_frame_style, gram_style):  # loop on feature layers
-                        gm_frame_style = utils.gram_matrix(ft_frame_style)
-                        style_loss += mse_loss(gm_frame_style, gm_s[:bath_size, :, :])
-                    style_loss *= style_weight
-
-                    total_loss = content_loss + style_loss
+                    total_loss = content_weight * content_loss + style_weight * style_loss
                     total_loss.backward()
                     optimizer.step()
 
-                    agg_content_loss += content_loss.item()
-                    agg_style_loss += style_loss.item()
-
-                    if (batch_num + 1) % log_interval == 0:
+                    if (batch_num + 1) % log_interval == 0:  # TODO: Choose between TQDM and printing
                         mesg = "{}\tEpoch {}:\t[{}/{}]\tcontent: {:.6f}\tstyle: {:.6f}\ttotal: {:.6f}".format(
                             time.ctime(), e + 1, count, 2 * len(train_dataset),
                             content_loss.item(),
                             style_loss.item(),
-                            (content_loss.item() + style_loss.item())
+                            total_loss
                         )
                         print(mesg)
 
@@ -137,7 +128,7 @@ def stylize(has_cuda, content_image, model, output_image_path=None, content_scal
     # content_image = utils.load_image(content_image_path, scale=content_scale)
     content_transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Lambda(lambda x: x.mul(255))
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
     content_image = content_transform(content_image)
     content_image = content_image.unsqueeze(0).to(device)
@@ -153,6 +144,8 @@ def stylize(has_cuda, content_image, model, output_image_path=None, content_scal
         style_model.to(device)
         output = style_model(content_image).cpu()
     # utils.save_image(output_image_path, output[0])
+    output = utils.un_normalize_batch(output)  # TODO: Do we need to normalize before getting picture back?
+
     return output[0]
 
 
