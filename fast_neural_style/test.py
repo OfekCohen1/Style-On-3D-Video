@@ -74,28 +74,33 @@ import numpy as np
 # im2 = Image.open("images/content-images/0002.webp").convert("RGB")
 
 
-def show_optical_flow ():
-    im = Image.open("../Data/Driving/RGB_cleanpass/left/0401.png")
-    flow = utils_dataset.readFlow("../Data/Driving/optical_flow/forward/0401.pfm")
+def show_optical_flow():
+    im = Image.open("../Data/Monkaa/RGB_cleanpass/left/0049.png")
+    flow = utils_dataset.readFlow("../Data/Monkaa/optical_flow/forward/0049.pfm")
 
     flow = np.round(flow)
 
     height, width, _ = np.asarray(im).shape
-    new_pixel_place = np.zeros_like(flow)
-    for i in range(height):
-        for j in range(width):
-            new_pixel_place[i, j, 0] = i + flow[i, j, 1]
-            new_pixel_place[i, j, 1] = j + flow[i, j, 0]
-    new_pixel_place[:, :, 0] = np.clip(new_pixel_place[:, :, 0], 0, height - 1)
-    new_pixel_place[:, :, 1] = np.clip(new_pixel_place[:, :, 1], 0, width - 1)
+    new_pixel_place = np.indices((height, width)).transpose(1, 2, 0)
+    new_pixel_place = new_pixel_place+flow[:, :, ::-1]
+    # new_pixel_place[:, :, 0] = np.clip(new_pixel_place[:, :, 0], 0, height - 1)
+    # new_pixel_place[:, :, 1] = np.clip(new_pixel_place[:, :, 1], 0, width - 1)
 
     new_pixel_place = new_pixel_place.astype(int)
     im_array = np.asarray(im)
     new_image = np.zeros_like(im_array)
-    print(im_array.shape)
-    print(new_pixel_place.shape)
-    for i in range(height):
-        for j in range(width):
-            new_image[new_pixel_place[i, j, 0], new_pixel_place[i, j, 1], :] = im_array[i, j, :]
+    valid_indices = np.where((new_pixel_place[:,:,0]>=0) & (new_pixel_place[:,:,0]<height)&
+                             (new_pixel_place[:,:,1]>=0) & (new_pixel_place[:,:,1]<width))
+    new_pixel_place = new_pixel_place[valid_indices[0], valid_indices[1],:]
+    new_image[new_pixel_place[:,0], new_pixel_place[:,1], :] = im_array[valid_indices[0], valid_indices[1], :]
+    # for i in range(height):
+    #     for j in range(width):
+    #         new_image[new_pixel_place[i, j, 0], new_pixel_place[i, j, 1], :] = im_array[i, j, :]
+    mask = np.zeros_like(im)
+    mask[new_pixel_place[:,0], new_pixel_place[:,1]] = 1;
 
-    Image.fromarray(new_image).show()
+    return new_image, mask
+
+new_image, mask = show_optical_flow();
+Image.fromarray(new_image).show()
+Image.fromarray(mask*255).show()
