@@ -9,12 +9,12 @@ import torch
 # model_vgg = Vgg16()
 from fast_neural_style.neural_style.MyDataSet import MyDataSet
 import fast_neural_style.neural_style.utils as utils
-
+import fast_neural_style.neural_style.utils_dataset as utils_dataset
 from torch.utils.data import DataLoader
 import numpy as np
 
 # im = Image.open("../Data/Driving/RGB_cleanpass/left/0400.png")
-im = Image.open("images/content-images/amber.jpg")
+# im = Image.open("images/content-images/amber.jpg")
 # print(type(im))
 # im.show()
 
@@ -70,8 +70,32 @@ im = Image.open("images/content-images/amber.jpg")
 # img.show()
 #
 
-flow_file = open("../Data/Monkaa/optical_flow/forward/0048.pfm")
-# print(type(flow_file))
-(a,b) = utils.load_pfm(flow_file)
-print(a.shape)
-print(b)
+
+# im2 = Image.open("images/content-images/0002.webp").convert("RGB")
+
+
+def show_optical_flow ():
+    im = Image.open("../Data/Driving/RGB_cleanpass/left/0401.png")
+    flow = utils_dataset.readFlow("../Data/Driving/optical_flow/forward/0401.pfm")
+
+    flow = np.round(flow)
+
+    height, width, _ = np.asarray(im).shape
+    new_pixel_place = np.zeros_like(flow)
+    for i in range(height):
+        for j in range(width):
+            new_pixel_place[i, j, 0] = i + flow[i, j, 1]
+            new_pixel_place[i, j, 1] = j + flow[i, j, 0]
+    new_pixel_place[:, :, 0] = np.clip(new_pixel_place[:, :, 0], 0, height - 1)
+    new_pixel_place[:, :, 1] = np.clip(new_pixel_place[:, :, 1], 0, width - 1)
+
+    new_pixel_place = new_pixel_place.astype(int)
+    im_array = np.asarray(im)
+    new_image = np.zeros_like(im_array)
+    print(im_array.shape)
+    print(new_pixel_place.shape)
+    for i in range(height):
+        for j in range(width):
+            new_image[new_pixel_place[i, j, 0], new_pixel_place[i, j, 1], :] = im_array[i, j, :]
+
+    Image.fromarray(new_image).show()
