@@ -1,5 +1,7 @@
 import torch
 from PIL import Image
+import numpy as np
+import re
 
 
 def load_image(filename, size=None, scale=None):
@@ -32,3 +34,12 @@ def normalize_batch(batch):
     std = batch.new_tensor([0.229, 0.224, 0.225]).view(-1, 1, 1)
     batch = batch.div_(255.0)
     return (batch - mean) / std
+
+
+def un_normalize_batch(batch):
+    # un- normalize imagenet mean and std
+    mean = batch.new_tensor([0.485, 0.456, 0.406]).view(-1, 1, 1)
+    std = batch.new_tensor([0.229, 0.224, 0.225]).view(-1, 1, 1)
+    return ((batch * std) + mean) * 255
+
+
