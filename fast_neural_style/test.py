@@ -12,6 +12,7 @@ import fast_neural_style.neural_style.utils as utils
 import fast_neural_style.neural_style.utils_dataset as utils_dataset
 from torch.utils.data import DataLoader
 import numpy as np
+import os
 
 # im = Image.open("../Data/Driving/RGB_cleanpass/left/0400.png")
 # im = Image.open("images/content-images/amber.jpg")
@@ -73,18 +74,46 @@ import numpy as np
 
 # im2 = Image.open("images/content-images/0002.webp").convert("RGB")
 
+def resize_flow(flow, new_width, new_height):
+    height, width, _ = flow.shape
+    height_ratio = height / new_height
+    width_ration = width / new_width
+    x_axis = np.linspace(0, width - 1, new_width)
+    y_axis = np.linspace(0, height - 1, new_height)
+    x_axis = np.round(x_axis).astype(int)
+    y_axis = np.round(y_axis).astype(int)
+    xx, yy = np.meshgrid(x_axis, y_axis)
+    flow = flow[yy, xx, :]
+    flow[:, :, 0] = flow[:, :, 0] / width_ration
+    flow[:, :, 1] = flow[:, :, 1] / height_ratio
+    return flow
+
 
 def show_optical_flow():
     im = Image.open("../Data/Monkaa/RGB_cleanpass/left/0049.png")
     flow = utils_dataset.readFlow("../Data/Monkaa/optical_flow/forward/0049.pfm")
+    # flow = utils_dataset.read("./flow_resize_test.flo")
+    height, width, _ = np.asarray(im).shape
+
+    ########### Flow Resize ###########
+
+    # height = int(height / 2)
+    # width = int(width / 2)
+    height = 256
+    width = 256
+    im = im.resize((width, height), Image.ANTIALIAS)
+    flow = resize_flow(flow, width, height)
+    dir = "../test/new_folder"
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    utils_dataset.write(os.path.join(dir, "flow_resize_test.flo"), flow)
+
+    ###################################
 
     flow = np.round(flow)
 
-    height, width, _ = np.asarray(im).shape
     new_pixel_place = np.indices((height, width)).transpose(1, 2, 0)
     new_pixel_place = new_pixel_place+flow[:, :, ::-1]
-    # new_pixel_place[:, :, 0] = np.clip(new_pixel_place[:, :, 0], 0, height - 1)
-    # new_pixel_place[:, :, 1] = np.clip(new_pixel_place[:, :, 1], 0, width - 1)
 
     new_pixel_place = new_pixel_place.astype(int)
     im_array = np.asarray(im)
@@ -93,14 +122,19 @@ def show_optical_flow():
                              (new_pixel_place[:,:,1]>=0) & (new_pixel_place[:,:,1]<width))
     new_pixel_place = new_pixel_place[valid_indices[0], valid_indices[1],:]
     new_image[new_pixel_place[:,0], new_pixel_place[:,1], :] = im_array[valid_indices[0], valid_indices[1], :]
-    # for i in range(height):
-    #     for j in range(width):
-    #         new_image[new_pixel_place[i, j, 0], new_pixel_place[i, j, 1], :] = im_array[i, j, :]
     mask = np.zeros_like(im)
     mask[new_pixel_place[:,0], new_pixel_place[:,1]] = 1;
 
     return new_image, mask
 
-new_image, mask = show_optical_flow();
+
+img = Image.open("../Data/Monkaa/RGB_cleanpass/left/0049.png")
+flow_path = "../Data/Monkaa/optical_flow_resized/forward/0049.flo"
+height = 256
+width = 256
+img = img.resize((width, height), Image.ANTIALIAS)
+new_image, mask = utils.apply_flow(img, flow_path)
+# new_image, mask = show_optical_flow()
 Image.fromarray(new_image).show()
 Image.fromarray(mask*255).show()
+
