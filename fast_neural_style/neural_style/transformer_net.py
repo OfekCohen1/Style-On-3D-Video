@@ -13,7 +13,7 @@ class TransformerNet(torch.nn.Module):
         self.in3 = torch.nn.InstanceNorm2d(128, affine=True)
         # Residual layers
         self.res1 = ResidualBlock(128)
-        self.res2 = ResidualBlock(128)
+        self.res2 = ResidualBlock(128)  # TODO: Change Architecture like paper
         self.res3 = ResidualBlock(128)
         self.res4 = ResidualBlock(128)
         self.res5 = ResidualBlock(128)

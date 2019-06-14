@@ -207,3 +207,22 @@ def writeFloat(name, data):
 
     else:
         np.transpose(data, (2, 0, 1)).tofile(f)
+
+
+def get_pics_direcs(dataset_path, image_limit = None):
+    """ Runs on data directory and returns directories of all pictures as an ordered list """
+
+    pic_direcs_list = []
+    for dir_name, sub_dir_list, file_list in os.walk(dataset_path):  # dataset_path needs to end with "/"
+        if "left" in sub_dir_list:
+            list_pics_left = os.listdir(os.path.join(dir_name, 'left/'))
+            list_pics_right = os.listdir(os.path.join(dir_name, 'right/'))
+            for i in range(len(list_pics_left) - 1):  # Don't include last picture, explained in MyDataSet
+                tuple_left_right = (os.path.join(dir_name, 'left/', list_pics_left[i]), os.path.join(dir_name, 'right/', list_pics_left[i]))
+                pic_direcs_list.append(tuple_left_right)
+                if (image_limit is not None) and (len(pic_direcs_list) >= image_limit):
+                    return pic_direcs_list
+                # TODO: Check if I can clear sub_dir_list
+    return pic_direcs_list
+
+
