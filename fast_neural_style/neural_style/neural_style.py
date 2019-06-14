@@ -13,7 +13,7 @@ from torchvision import datasets
 from torchvision import transforms
 import torch.onnx
 from fast_neural_style.neural_style.MyDataSet import MyDataSet
-
+from PIL import Image
 import fast_neural_style.neural_style.utils as utils
 from fast_neural_style.neural_style.transformer_net import TransformerNet
 from fast_neural_style.neural_style.vgg import Vgg16
@@ -32,13 +32,14 @@ def check_paths(args):
 
 
 def train(dataset_path, style_image_path, save_model_dir, has_cuda,
-          epochs=2, batch_size=4, checkpoint_model_dir=None, image_size=256, style_size=None, seed=42,
+          epochs=2, image_limit=None, checkpoint_model_dir=None, image_size=256, style_size=None, seed=42,
           content_weight=1e5,
           style_weight=1e10, lr=1e-3, log_interval=500, checkpoint_interval=2000):
     device = torch.device("cuda" if has_cuda else "cpu")
 
     np.random.seed(seed)
     torch.manual_seed(seed)
+    batch_size = 1  # needs to be 1, batch is created using MyDataSet
 
     transform = transforms.Compose([
         transforms.Resize(image_size),
@@ -46,13 +47,17 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
-    videos_list = os.listdir(dataset_path)
-    train_dataset = {}
-    train_loader = {}
-    for video_name in videos_list:
-        video_dataset_path = os.path.join(dataset_path, video_name)
-        train_dataset[video_name] = MyDataSet(video_dataset_path, transform)
-        train_loader[video_name] = DataLoader(train_dataset[video_name], batch_size=batch_size)
+    # videos_list = os.listdir(dataset_path)
+    # train_dataset = {}
+    # train_loader = {}
+    # for video_name in videos_list:
+    #     video_dataset_path = os.path.join(dataset_path, video_name)
+    #     train_dataset[video_name] = MyDataSet(video_dataset_path, transform)
+    #     train_loader[video_name] = DataLoader(train_dataset[video_name], batch_size=batch_size)
+
+    # video_dataset_path = os.path.join(dataset_path, "Monkaa")  # dataset_path = "Data/Monkaa"
+    train_dataset = MyDataSet(dataset_path, transform, image_limit=image_limit)  # remove if using all datasets
+    train_loader = DataLoader(train_dataset, batch_size=batch_size)
 
     transformer_net = TransformerNet().to(device)
     optimizer = Adam(transformer_net.parameters(), lr)
@@ -62,7 +67,6 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
     style_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        #TODO : Check if we need to normalize before both VGG and Transformer net
     ])
     style_image = utils.load_image(style_image_path, size=style_size)
     style_image = style_transform(style_image)
@@ -70,46 +74,44 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
 
     features_style = vgg(style_image)
     gram_style = [utils.gram_matrix(y) for y in features_style]
+    for e in range(epochs):
+        batch_num = 0
+        # for video_name in videos_list:
+        for frames_curr_next in tqdm(train_loader):
+            (frames_curr, frames_next) = frames_curr_next
+            batch_num += 1
+            for frame in frames_curr:  # Left + Right
+                batch_size = len(frame)
+                optimizer.zero_grad()
 
-    for e in tqdm(range(epochs)):
-        count = 0
-        for video_name in videos_list:
-            for batch_num, both_frames in enumerate(train_loader[video_name]):
-                for frame in both_frames:
-                    batch_size = len(frame)
-                    count += batch_size
-                    optimizer.zero_grad()
+                frame = frame.to(device)
+                frame_style = transformer_net(frame)
 
-                    frame = frame.to(device)
-                    frame_style = transformer_net(frame)
+                features_frame = vgg(frame)
+                features_frame_style = vgg(frame_style)
 
-                    # frame_style = utils.normalize_batch(frame_style) # TODO: Check if we need to normalize before VGG
-                    # frame = utils.normalize_batch(frame)
-                    features_frame = vgg(frame)
-                    features_frame_style = vgg(frame_style)
+                content_loss = losses.content_loss(features_frame, features_frame_style)
+                style_loss = losses.style_loss(features_frame_style, gram_style, batch_size)
 
-                    content_loss = losses.content_loss(features_frame,features_frame_style)
-                    style_loss = losses.style_loss(features_frame_style, gram_style, batch_size)
+                total_loss = content_weight * content_loss + style_weight * style_loss
+                total_loss.backward()
+                optimizer.step()
 
-                    total_loss = content_weight * content_loss + style_weight * style_loss
-                    total_loss.backward()
-                    optimizer.step()
+                if (batch_num + 1) % log_interval == 0:  # TODO: Choose between TQDM and printing
+                    mesg = "{}\tEpoch {}:\t[{}/{}]\tcontent: {:.6f}\tstyle: {:.6f}\ttotal: {:.6f}".format(
+                        time.ctime(), e + 1, batch_num, 2 * len(train_dataset),
+                        content_loss.item(),
+                        style_loss.item(),
+                        total_loss
+                    )
+                    print(mesg)
 
-                    if (batch_num + 1) % log_interval == 0:  # TODO: Choose between TQDM and printing
-                        mesg = "{}\tEpoch {}:\t[{}/{}]\tcontent: {:.6f}\tstyle: {:.6f}\ttotal: {:.6f}".format(
-                            time.ctime(), e + 1, count, 2 * len(train_dataset),
-                            content_loss.item(),
-                            style_loss.item(),
-                            total_loss
-                        )
-                        print(mesg)
-
-                    if checkpoint_model_dir is not None and (batch_num + 1) % checkpoint_interval == 0:
-                        transformer_net.eval().cpu()
-                        ckpt_model_filename = "ckpt_epoch_" + str(e) + "_batch_id_" + str(batch_num + 1) + ".pth"
-                        ckpt_model_path = os.path.join(checkpoint_model_dir, ckpt_model_filename)
-                        torch.save(transformer_net.state_dict(), ckpt_model_path)
-                        transformer_net.to(device).train()
+                if checkpoint_model_dir is not None and (batch_num + 1) % checkpoint_interval == 0:
+                    transformer_net.eval().cpu()
+                    ckpt_model_filename = "ckpt_epoch_" + str(e) + "_batch_id_" + str(batch_num + 1) + ".pth"
+                    ckpt_model_path = os.path.join(checkpoint_model_dir, ckpt_model_filename)
+                    torch.save(transformer_net.state_dict(), ckpt_model_path)
+                    transformer_net.to(device).train()
 
     # save model
     transformer_net.eval().cpu()
@@ -144,19 +146,41 @@ def stylize(has_cuda, content_image, model, output_image_path=None, content_scal
         style_model.to(device)
         output = style_model(content_image).cpu()
     # utils.save_image(output_image_path, output[0])
-    output = utils.un_normalize_batch(output)  # TODO: Do we need to normalize before getting picture back?
+    output = utils.un_normalize_batch(output)
 
     return output[0]
 
 
 def main():
     # TODO: This Doesn't Work. We changed image_path to image.
-    has_cuda = 1
-    content_image_path = "../images/content-images/ofek_garden.jpg"
-    output_image_path = "../images/output-images/ofek_garden-test.jpg"
-    model = "../models/mosaic.pth"
-    stylize(has_cuda, content_image_path, output_image_path, model)
-
+    # has_cuda = 1
+    # content_image_path = "../images/content-images/ofek_garden.jpg"
+    # output_image_path = "../images/output-images/ofek_garden-test.jpg"
+    # model = "../models/mosaic.pth"
+    # stylize(has_cuda, content_image_path, output_image_path, model)
+    #
+    image_size = 256
+    dataset_path = "../../Data/Monkaa"
+    transform = transforms.Compose([
+        transforms.Resize(image_size),
+        transforms.CenterCrop(image_size),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+    train_dataset = MyDataSet(dataset_path, transform)  # remove if using all datasets
+    train_loader = DataLoader(train_dataset, batch_size=1)
+    counter = 0
+    for frames in tqdm(train_loader):
+        (frames_curr, frames_next) = frames
+        frame_curr_left = frames_curr[0]
+        frame_curr_left = 255 * frame_curr_left.clone().clamp(0, 255).numpy()
+        frame_left = frame_curr_left.transpose(2, 3, 1, 0).astype("uint8")
+        frame_left = frame_left[:, :, :, 0]
+        frame_left = Image.fromarray(frame_left)
+        counter += 1
+        if counter == 124:
+            break
+    frame_left.show()
 
 if __name__ == "__main__":
     main()
