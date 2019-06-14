@@ -1,5 +1,6 @@
 import torch
 from PIL import Image
+import fast_neural_style.neural_style.utils_dataset as utils_dataset
 import numpy as np
 import re
 
@@ -41,5 +42,26 @@ def un_normalize_batch(batch):
     mean = batch.new_tensor([0.485, 0.456, 0.406]).view(-1, 1, 1)
     std = batch.new_tensor([0.229, 0.224, 0.225]).view(-1, 1, 1)
     return ((batch * std) + mean) * 255
+
+
+def apply_flow(img, flow_path):
+    flow = utils_dataset.readFlow(flow_path)
+    flow = np.round(flow)
+    height, width, _ = np.asarray(img).shape
+
+    new_pixel_place = np.indices((height, width)).transpose(1, 2, 0)
+    new_pixel_place = new_pixel_place + flow[:, :, ::-1]
+
+    new_pixel_place = new_pixel_place.astype(int)
+    im_array = np.asarray(img)
+    new_image = np.zeros_like(im_array)
+    valid_indices = np.where((new_pixel_place[:, :, 0] >= 0) & (new_pixel_place[:, :, 0] < height) &
+                             (new_pixel_place[:, :, 1] >= 0) & (new_pixel_place[:, :, 1] < width))
+    new_pixel_place = new_pixel_place[valid_indices[0], valid_indices[1], :]
+    new_image[new_pixel_place[:, 0], new_pixel_place[:, 1], :] = im_array[valid_indices[0], valid_indices[1], :]
+    mask = np.zeros_like(img)
+    mask[new_pixel_place[:, 0], new_pixel_place[:, 1]] = 1
+
+    return new_image, mask
 
 
