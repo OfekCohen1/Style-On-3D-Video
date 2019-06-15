@@ -1,5 +1,6 @@
 import torch
 from PIL import Image
+import fast_neural_style.neural_style.utils_dataset as utils_dataset
 import numpy as np
 import re
 
@@ -43,39 +44,24 @@ def un_normalize_batch(batch):
     return ((batch * std) + mean) * 255
 
 
-def load_pfm(file):
-    '''
-    Load a PFM file into a Numpy array. Note that it will have
-    a shape of H x W, not W x H. Returns a tuple containing the
-    loaded image and the scale factor from the file.
-    '''
-    color = None
-    width = None
-    height = None
-    scale = None
-    endian = None
+def apply_flow(img, flow_path):
+    flow = utils_dataset.readFlow(flow_path)
+    flow = np.round(flow)
+    height, width, _ = np.asarray(img).shape
 
-    header = file.readline().rstrip()
-    if header == 'PF':
-        color = True
-    elif header == 'Pf':
-        color = False
-    else:
-        raise Exception('Not a PFM file.')
+    new_pixel_place = np.indices((height, width)).transpose(1, 2, 0)
+    new_pixel_place = new_pixel_place + flow[:, :, ::-1]
 
-    dim_match = re.match(r'^(\d+)\s(\d+)\s$', file.readline())
-    if dim_match:
-        width, height = map(int, dim_match.groups())
-    else:
-        raise Exception('Malformed PFM header.')
+    new_pixel_place = new_pixel_place.astype(int)
+    im_array = np.asarray(img)
+    new_image = np.zeros_like(im_array)
+    valid_indices = np.where((new_pixel_place[:, :, 0] >= 0) & (new_pixel_place[:, :, 0] < height) &
+                             (new_pixel_place[:, :, 1] >= 0) & (new_pixel_place[:, :, 1] < width))
+    new_pixel_place = new_pixel_place[valid_indices[0], valid_indices[1], :]
+    new_image[new_pixel_place[:, 0], new_pixel_place[:, 1], :] = im_array[valid_indices[0], valid_indices[1], :]
+    mask = np.zeros_like(img)
+    mask[new_pixel_place[:, 0], new_pixel_place[:, 1]] = 1
 
-    scale = float(file.readline().rstrip())
-    if scale < 0:  # little-endian
-        endian = '<'
-        scale = -scale
-    else:
-        endian = '>'  # big-endian
+    return new_image, mask
 
-    data = np.fromfile(file, endian + 'f')
-    shape = (height, width, 3) if color else (height, width)
-    return np.reshape(data, shape), scale
+
