@@ -13,18 +13,17 @@ import fast_neural_style.neural_style.utils_dataset as utils_dataset
 from torch.utils.data import DataLoader
 import numpy as np
 from tqdm import tqdm
+import fast_neural_style.neural_style.losses as losses
 
-
-
-dataset_path = "../Data/Monkaa"
-dataset_path_train = "../../Data/Monkaa"
-style_image_path = "images/style-images/mosaic.jpg"
-model_dir = "../fast_neural_style/models/"
-has_cuda = 1
 # videos_list = os.listdir("../Data")
 # videos_list = os.listdir(dataset_path)
 # train_dataset = {}
 # train_loader = {}
+# for video_name in videos_list:
+#     video_dataset_path = os.path.join(dataset_path, video_name)
+#     train_dataset[video_name] = MyDataSet(video_dataset_path, transform)
+#     train_loader[video_name] = DataLoader(train_dataset[video_name], batch_size=1)
+
 
 image_size = 256
 
@@ -33,17 +32,31 @@ transform = transforms.Compose([
     transforms.CenterCrop(image_size),
     transforms.ToTensor(),
 ])
-train_dataset = MyDataSet(dataset_path, transform)
-train_loader = DataLoader(train_dataset, batch_size=1, shuffle=False)
-train(dataset_path, style_image_path, model_dir, has_cuda, epochs=1, image_limit=300, log_interval=50)
+dataset_path = "../Data/Monkaa"
+style_image_path = "images/style-images/mosaic.jpg"
+model_dir = "../fast_neural_style/models/"
+checkpoint_model_dir = "../fast_neural_style/models/checkpoint_models"
+has_cuda = 1
 
-# for video_name in videos_list:
-#     video_dataset_path = os.path.join(dataset_path, video_name)
-#     train_dataset[video_name] = MyDataSet(video_dataset_path, transform)
-#     train_loader[video_name] = DataLoader(train_dataset[video_name], batch_size=1)
+train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
+      image_size=image_size, log_interval=200, checkpoint_interval=8000, model_filename="model_test_temp_1e5",
+      temporal_weight=1e5, content_weight=1e5, style_weight=1e10)
+train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
+      image_size=image_size, log_interval=5, checkpoint_interval=15, model_filename="model_test_temp_1e7",
+      temporal_weight=1e7,content_weight=1e5, style_weight=1e10)
+train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
+      image_size=image_size, log_interval=5, checkpoint_interval=15, model_filename="model_test_temp_1e8",
+      temporal_weight=1e8,content_weight=1e5, style_weight=1e10)
+train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
+      image_size=image_size, log_interval=5, checkpoint_interval=15, model_filename="model_test_temp_0",
+      temporal_weight=0, content_weight=1e5, style_weight=1e10)
 
-
-
+# train_dataset_path = os.path.join(dataset_path, "RGB_cleanpass")
+# flow_path = os.path.join(dataset_path, "optical_flow_resized")
+# train_dataset = MyDataSet(train_dataset_path, flow_path, transform)
+# train_loader = DataLoader(train_dataset, batch_size=1, shuffle=False)
+#
+#
 # counter = 0
 # for frames in tqdm(train_loader):
 #     (frames_curr, frames_next) = frames
@@ -58,47 +71,41 @@ train(dataset_path, style_image_path, model_dir, has_cuda, epochs=1, image_limit
 # frame_left.show()
 # print(counter)
 
+# Stylize:
 
-# model = "models/myModel.pth"
+# model = "models/model_test.pth"
 # has_cuda = 1
-# im = Image.open("images/content-images/amber.jpg")
-# left_frame_stylized = stylize(has_cuda, im, model)
+# # img = Image.open("../Data/Monkaa/RGB_cleanpass/a_rain_of_stones_x2/left/0097.png")
+# img = Image.open("../Data/Monkaa_sample/RGB_cleanpass/left/0049.png")
+# left_frame_stylized = stylize(has_cuda, img, model)
+# stylized_frame = left_frame_stylized.clone().clamp(0, 255).numpy()
+# stylized_frame = stylized_frame.transpose(1, 2, 0).astype("uint8")
+# img = Image.fromarray(stylized_frame)
+# img.show()
+# # img_next = Image.open("../Data/Monkaa/RGB_cleanpass/a_rain_of_stones_x2/left/0098.png")
+# img_next = Image.open("../Data/Monkaa_sample/RGB_cleanpass/left/0050.png")
+# left_frame_stylized = stylize(has_cuda, img_next, model)
 # stylized_frame = left_frame_stylized.clone().clamp(0, 255).numpy()
 # stylized_frame = stylized_frame.transpose(1, 2, 0).astype("uint8")
 # img = Image.fromarray(stylized_frame)
 # img.show()
 #
 
-
-# im2 = Image.open("images/content-images/0002.webp").convert("RGB")
-
-
-def show_optical_flow ():
-    im = Image.open("../Data/Driving/RGB_cleanpass/left/0401.png")
-    flow = utils_dataset.readFlow("../Data/Driving/optical_flow/forward/0401.pfm")
-
-    flow = np.round(flow)
-
-    height, width, _ = np.asarray(im).shape
-    new_pixel_place = np.zeros_like(flow)
-    for i in range(height):
-        for j in range(width):
-            new_pixel_place[i, j, 0] = i + flow[i, j, 1]
-            new_pixel_place[i, j, 1] = j + flow[i, j, 0]
-    new_pixel_place[:, :, 0] = np.clip(new_pixel_place[:, :, 0], 0, height - 1)
-    new_pixel_place[:, :, 1] = np.clip(new_pixel_place[:, :, 1], 0, width - 1)
-
-    new_pixel_place = new_pixel_place.astype(int)
-    im_array = np.asarray(im)
-    new_image = np.zeros_like(im_array)
-    print(im_array.shape)
-    print(new_pixel_place.shape)
-    for i in range(height):
-        for j in range(width):
-            new_image[new_pixel_place[i, j, 0], new_pixel_place[i, j, 1], :] = im_array[i, j, :]
-
-    Image.fromarray(new_image).show()
-
+# img = Image.open("../Data/Monkaa/RGB_cleanpass/a_rain_of_stones_x2/left/0097.png")
+# flow_path = "../Data/Monkaa/optical_flow_resized/a_rain_of_stones_x2/left/OpticalFlowIntoFuture_0097_L.flo"
+# img = transform(img)
+# C, H, W = img.shape
+# im_batch = torch.ones((1, C, H, W))
+# im_batch[0, :, :, :] = img
+# img = im_batch
+#
+# new_image, mask = utils.apply_flow(img, flow_path)
+# new_image = np.asarray(255 * new_image).astype("uint8")
+# mask = 255 * np.asarray(mask).astype("uint8")
+# print((new_image.shape, type(new_image[0, 0, 0])))
+# print(mask.shape, type(mask))
+# Image.fromarray(new_image).show()
+# Image.fromarray(mask).show()
 
 # print('hello')
 # pic_direcs_list = utils_dataset.get_pics_direcs("../Data/Monkaa")
@@ -124,3 +131,26 @@ def show_optical_flow ():
 # frame_next_left = Image.open(frame_path_next_left)
 # frame_next_right = Image.open(frame_path_next_right)
 # print(type(frame_next_left))
+
+# device = torch.device("cuda")
+# img = Image.open("../Data/Monkaa/RGB_cleanpass/a_rain_of_stones_x2/left/0097.png")
+# flow_path = "../Data/Monkaa/optical_flow_resized/a_rain_of_stones_x2/left/OpticalFlowIntoFuture_0097_L.flo"
+# img = transform(img)
+# img = img.to(device)
+# C, H, W = img.shape
+# im_batch = torch.ones((1, C, H, W))
+# im_batch[0, :, :, :] = img
+# img_curr = im_batch
+#
+# img_next = Image.open("../Data/Monkaa/RGB_cleanpass/a_rain_of_stones_x2/left/0098.png")
+# img_next = transform(img_next)
+# img_next = img_next.to(device)
+# C, H, W = img_next.shape
+# im_batch = torch.ones((1, C, H, W))
+# im_batch[0, :, :, :] = img_next
+# img_next = im_batch
+# img_next = img_next.to(device)
+# flow = utils_dataset.readFlow(flow_path)
+# temp_loss = losses.temporal_loss(img_curr, img_next, flow, device)
+#
+# print(temp_loss)

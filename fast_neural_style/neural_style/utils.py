@@ -3,7 +3,7 @@ from PIL import Image
 import fast_neural_style.neural_style.utils_dataset as utils_dataset
 import numpy as np
 import re
-
+# import matplotlib.pyplot as plt
 
 def load_image(filename, size=None, scale=None):
     img = Image.open(filename)
@@ -44,27 +44,47 @@ def un_normalize_batch(batch):
     return ((batch * std) + mean) * 255
 
 
-def apply_flow(img, flow_path):
-    flow = utils_dataset.readFlow(flow_path)
-    flow = np.round(flow)
+def apply_flow(img, flow):
+    flow = flow[0, :, :, :]  # H x W x C
     height, width, _ = flow.shape
-    img = img.transpose(2, 3, 1, 0)
+    img = img.permute(2, 3, 1, 0)
     img = img[:, :, :, 0]  # H x W x C
-    img = np.asarray(img)
+    img_np = img.clone().cpu().detach().numpy()  # Image input is as a tensor, but apply_flow uses numpy
+    flow = np.asarray(flow.cpu())
+    flow = np.round(flow)
 
     new_pixel_place = np.indices((height, width)).transpose(1, 2, 0)
     new_pixel_place = new_pixel_place + flow[:, :, ::-1]
 
     new_pixel_place = new_pixel_place.astype(int)
-    im_array = np.asarray(img)
+    im_array = np.asarray(img_np)
     new_image = np.zeros_like(im_array)
     valid_indices = np.where((new_pixel_place[:, :, 0] >= 0) & (new_pixel_place[:, :, 0] < height) &
                              (new_pixel_place[:, :, 1] >= 0) & (new_pixel_place[:, :, 1] < width))
     new_pixel_place = new_pixel_place[valid_indices[0], valid_indices[1], :]
     new_image[new_pixel_place[:, 0], new_pixel_place[:, 1], :] = im_array[valid_indices[0], valid_indices[1], :]
-    mask = np.zeros_like(img)
+    mask = np.zeros_like(img_np)
     mask[new_pixel_place[:, 0], new_pixel_place[:, 1]] = 1
 
     new_image = torch.as_tensor(new_image)
     mask = torch.as_tensor(mask)
     return new_image, mask
+
+
+def save_loss_file(loss_list, filename):
+    f = open(filename, "w+")
+    for item in loss_list:
+        f.write("%f\n" % item)
+    f.close()
+
+
+# def read_loss_file(filename):
+#     f = open(filename, 'r')
+#     loss_list = []
+#     contents = f.readlines()
+#     for item in contents:
+#         loss_list.append(float(item))
+#
+#     plt.plot(loss_list)
+#     return loss_list
+
