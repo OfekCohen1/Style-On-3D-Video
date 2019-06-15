@@ -98,7 +98,7 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
                 optimizer.step()
 
                 if (batch_num + 1) % log_interval == 0:  # TODO: Choose between TQDM and printing
-                    mesg = "{}\tEpoch {}:\t[{}/{}]\tcontent: {:.6f}\tstyle: {:.6f}\ttotal: {:.6f}".format(
+                    mesg = "\n{}\tEpoch {}:\t[{}/{}]\tcontent: {:.6f}\tstyle: {:.6f}\ttotal: {:.6f}".format(
                         time.ctime(), e + 1, batch_num, 2 * len(train_dataset),
                         content_loss.item(),
                         style_loss.item(),

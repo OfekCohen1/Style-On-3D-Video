@@ -20,6 +20,7 @@ dataset_path = "../Data/Monkaa"
 dataset_path_train = "../../Data/Monkaa"
 style_image_path = "images/style-images/mosaic.jpg"
 model_dir = "../fast_neural_style/models/"
+checkpoint_model_dir = "../fast_neural_style/models/checkpoint_models/"
 has_cuda = 1
 # videos_list = os.listdir("../Data")
 # videos_list = os.listdir(dataset_path)
@@ -33,9 +34,10 @@ transform = transforms.Compose([
     transforms.CenterCrop(image_size),
     transforms.ToTensor(),
 ])
-# train_dataset = MyDataSet(dataset_path, transform)
-# train_loader = DataLoader(train_dataset, batch_size=1, shuffle=False)
-# train(dataset_path, style_image_path, model_dir, has_cuda, epochs=1, image_limit=300,log_interval=50)
+train_dataset = MyDataSet(dataset_path, transform)
+train_loader = DataLoader(train_dataset, batch_size=1, shuffle=False)
+train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir, log_interval=5, checkpoint_interval=4000,
+      content_weight=1, style_weight=5)
 
 # for video_name in videos_list:
 #     video_dataset_path = os.path.join(dataset_path, video_name)
@@ -59,45 +61,18 @@ transform = transforms.Compose([
 # print(counter)
 
 
-model = "models/myModel.pth"
-has_cuda = 1
-im = Image.open("images/content-images/amber.jpg")
-left_frame_stylized = stylize(has_cuda, im, model)
-stylized_frame = left_frame_stylized.clone().clamp(0, 255).numpy()
-stylized_frame = stylized_frame.transpose(1, 2, 0).astype("uint8")
-img = Image.fromarray(stylized_frame)
-img.show()
+# model = "models/myModel.pth"
+# has_cuda = 1
+# im = Image.open("images/content-images/amber.jpg")
+# left_frame_stylized = stylize(has_cuda, im, model)
+# stylized_frame = left_frame_stylized.clone().clamp(0, 255).numpy()
+# stylized_frame = stylized_frame.transpose(1, 2, 0).astype("uint8")
+# img = Image.fromarray(stylized_frame)
+# img.show()
 #
 
 
 # im2 = Image.open("images/content-images/0002.webp").convert("RGB")
-
-
-def show_optical_flow ():
-    im = Image.open("../Data/Driving/RGB_cleanpass/left/0401.png")
-    flow = utils_dataset.readFlow("../Data/Driving/optical_flow/forward/0401.pfm")
-
-    flow = np.round(flow)
-
-    height, width, _ = np.asarray(im).shape
-    new_pixel_place = np.zeros_like(flow)
-    for i in range(height):
-        for j in range(width):
-            new_pixel_place[i, j, 0] = i + flow[i, j, 1]
-            new_pixel_place[i, j, 1] = j + flow[i, j, 0]
-    new_pixel_place[:, :, 0] = np.clip(new_pixel_place[:, :, 0], 0, height - 1)
-    new_pixel_place[:, :, 1] = np.clip(new_pixel_place[:, :, 1], 0, width - 1)
-
-    new_pixel_place = new_pixel_place.astype(int)
-    im_array = np.asarray(im)
-    new_image = np.zeros_like(im_array)
-    print(im_array.shape)
-    print(new_pixel_place.shape)
-    for i in range(height):
-        for j in range(width):
-            new_image[new_pixel_place[i, j, 0], new_pixel_place[i, j, 1], :] = im_array[i, j, :]
-
-    Image.fromarray(new_image).show()
 
 
 # print('hello')
@@ -124,3 +99,14 @@ def show_optical_flow ():
 # frame_next_left = Image.open(frame_path_next_left)
 # frame_next_right = Image.open(frame_path_next_right)
 # print(type(frame_next_left))
+
+###### Optical flow Test ########
+# img = Image.open("../Data/Monkaa/RGB_cleanpass/left/0049.png")
+# flow_path = "../Data/Monkaa/optical_flow_resized/forward/0049.flo"
+# height = 256
+# width = 256
+# img = img.resize((width, height), Image.ANTIALIAS)
+# new_image, mask = utils.apply_flow(img, flow_path)
+# # new_image, mask = show_optical_flow()
+# Image.fromarray(new_image).show()
+# Image.fromarray(mask*255).show()
