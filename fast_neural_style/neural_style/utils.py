@@ -47,7 +47,10 @@ def un_normalize_batch(batch):
 def apply_flow(img, flow_path):
     flow = utils_dataset.readFlow(flow_path)
     flow = np.round(flow)
-    height, width, _ = np.asarray(img).shape
+    height, width, _ = flow.shape
+    img = img.transpose(2, 3, 1, 0)
+    img = img[:, :, :, 0]  # H x W x C
+    img = np.asarray(img)
 
     new_pixel_place = np.indices((height, width)).transpose(1, 2, 0)
     new_pixel_place = new_pixel_place + flow[:, :, ::-1]
@@ -62,6 +65,6 @@ def apply_flow(img, flow_path):
     mask = np.zeros_like(img)
     mask[new_pixel_place[:, 0], new_pixel_place[:, 1]] = 1
 
+    new_image = torch.as_tensor(new_image)
+    mask = torch.as_tensor(mask)
     return new_image, mask
-
-

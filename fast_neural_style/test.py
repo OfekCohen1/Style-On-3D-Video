@@ -33,9 +33,9 @@ transform = transforms.Compose([
     transforms.CenterCrop(image_size),
     transforms.ToTensor(),
 ])
-# train_dataset = MyDataSet(dataset_path, transform)
-# train_loader = DataLoader(train_dataset, batch_size=1, shuffle=False)
-# train(dataset_path, style_image_path, model_dir, has_cuda, epochs=1, image_limit=300,log_interval=50)
+train_dataset = MyDataSet(dataset_path, transform)
+train_loader = DataLoader(train_dataset, batch_size=1, shuffle=False)
+train(dataset_path, style_image_path, model_dir, has_cuda, epochs=1, image_limit=300, log_interval=50)
 
 # for video_name in videos_list:
 #     video_dataset_path = os.path.join(dataset_path, video_name)
@@ -59,14 +59,14 @@ transform = transforms.Compose([
 # print(counter)
 
 
-model = "models/myModel.pth"
-has_cuda = 1
-im = Image.open("images/content-images/amber.jpg")
-left_frame_stylized = stylize(has_cuda, im, model)
-stylized_frame = left_frame_stylized.clone().clamp(0, 255).numpy()
-stylized_frame = stylized_frame.transpose(1, 2, 0).astype("uint8")
-img = Image.fromarray(stylized_frame)
-img.show()
+# model = "models/myModel.pth"
+# has_cuda = 1
+# im = Image.open("images/content-images/amber.jpg")
+# left_frame_stylized = stylize(has_cuda, im, model)
+# stylized_frame = left_frame_stylized.clone().clamp(0, 255).numpy()
+# stylized_frame = stylized_frame.transpose(1, 2, 0).astype("uint8")
+# img = Image.fromarray(stylized_frame)
+# img.show()
 #
 
 

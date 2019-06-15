@@ -18,7 +18,7 @@ def resize_flow(flow, new_width, new_height):
     return flow
 
 
-og_dir = "./Data/Monkaa/optical_flow"
+og_dir = "./Data/Monkaa/optical_flow"  # TODO: Check for forward/ backward directories
 new_dir = "./Data/Monkaa/optical_flow_resized"
 new_height = 256
 new_width = 256
