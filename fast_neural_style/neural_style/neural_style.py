@@ -58,7 +58,7 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
     #     train_loader[video_name] = DataLoader(train_dataset[video_name], batch_size=batch_size)
 
     # video_dataset_path = os.path.join(dataset_path, "Monkaa")  # dataset_path = "Data/Monkaa"
-    train_dataset_path = os.path.join(dataset_path, "RGB_cleanpass")
+    train_dataset_path = os.path.join(dataset_path, "frames_cleanpass")
     flow_path = os.path.join(dataset_path, "optical_flow_resized")
     train_dataset = MyDataSet(train_dataset_path, flow_path, transform, image_limit=image_limit)  # remove if using all datasets
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)

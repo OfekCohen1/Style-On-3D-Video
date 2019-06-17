@@ -45,6 +45,7 @@ def un_normalize_batch(batch):
 
 
 def apply_flow(img, flow):
+    """ Flow is Tensor B x H x W x C , Image is Tensor B x C x H x W """
     flow = flow[0, :, :, :]  # H x W x C
     height, width, _ = flow.shape
     img = img.permute(2, 3, 1, 0)
@@ -71,8 +72,8 @@ def apply_flow(img, flow):
     return new_image, mask
 
 
-def save_loss_file(loss_list, filename):
-    f = open(filename, "w+")
+def save_loss_file(loss_list, file_path):
+    f = open(file_path, "w+")
     for item in loss_list:
         f.write("%f\n" % item)
     f.close()
