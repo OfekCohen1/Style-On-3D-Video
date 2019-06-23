@@ -14,7 +14,7 @@ def load_image(filename, size=None, scale=None):
     return img
 
 
-def save_image(filename, data):
+def save_image(filename, data):  # TODO: Remove this save_image and change with save_image_loss
     img = data.clone().clamp(0, 255).numpy()
     img = img.transpose(1, 2, 0).astype("uint8")
     img = Image.fromarray(img)
@@ -75,7 +75,7 @@ def apply_flow(img, flow):
 def save_loss_file(loss_list, file_path):
     f = open(file_path, "w+")
     for item in loss_list:
-        f.write("%f\n" % item)
+        f.write("%s\n" % item)
     f.close()
 
 
@@ -89,3 +89,18 @@ def save_loss_file(loss_list, file_path):
 #     plt.plot(loss_list)
 #     return loss_list
 
+def save_image_loss(frame, name_file):
+    """ Image received is H x W x C Tensor"""
+    mean = frame.new_tensor([0.485, 0.456, 0.406]).view(1, 1, -1)
+    std = frame.new_tensor([0.229, 0.224, 0.225]).view(1, 1, -1)
+    frame = ((frame * std) + mean) * 255
+    frame_numpy = frame.clone().detach().cpu().numpy().astype("uint8")
+    frame_image = Image.fromarray(frame_numpy)
+    frame_image.save(name_file)
+
+
+def save_image_loss_mask(mask, name_file):
+    mask = mask.clone().detach().cpu()
+    mask = 255 * np.asarray(mask).astype("uint8")
+    frame_image = Image.fromarray(mask)
+    frame_image.save(name_file)

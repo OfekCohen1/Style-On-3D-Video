@@ -13,7 +13,7 @@ width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
 
-out = cv2.VideoWriter("Dinosaur_temp_0.avi", cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), fps, (width, height))
+out = cv2.VideoWriter("Dinosaur_temp_1e7.avi", cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), fps, (width, height))
 
 for i in tqdm(range(num_frames // 7)):
     ret, frame = cap.read()
@@ -24,7 +24,7 @@ for i in tqdm(range(num_frames // 7)):
     right_frame = frame[:, np.arange(width // 2, width).astype(int), :]
 
     has_cuda = 1
-    model = "./fast_neural_style/models/model_test_temp_1e5.pth"
+    model = "./fast_neural_style/models/model_test_temp_1e7.pth"
     left_frame_stylized = stylize(has_cuda, left_frame, model)
     right_frame_stylized = stylize(has_cuda, right_frame, model) # Shape after stylize: (C,H,W)
 

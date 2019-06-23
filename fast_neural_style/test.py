@@ -38,21 +38,44 @@ def train_models():
     checkpoint_model_dir = "../fast_neural_style/models/checkpoint_models"
     has_cuda = 1
 
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_0",
+    #       temporal_weight=0, content_weight=1e5, style_weight=1e10)
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_1e5",
+    #       temporal_weight=1e5, content_weight=1e5, style_weight=1e10)
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=2500, model_filename="model_test_temp_2e5",
+    #       temporal_weight=2e5, content_weight=1e5, style_weight=1e10)
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_5e5",
+    #       temporal_weight=5e5, content_weight=1e5, style_weight=1e10)
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_8e5",
+    #       temporal_weight=8e5, content_weight=1e5, style_weight=1e10)
     train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=200, checkpoint_interval=8000, model_filename="model_test_temp_0",
-          temporal_weight=0, content_weight=1e5, style_weight=1e10)
+          image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_1e7",
+          temporal_weight=1e7, content_weight=1e5, style_weight=1e10)
     train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=200, checkpoint_interval=8000, model_filename="model_test_temp_1e5",
-          temporal_weight=1e5, content_weight=1e5, style_weight=1e10)
+          image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_5e7",
+          temporal_weight=5e7, content_weight=1e5, style_weight=1e10)
     train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=200, checkpoint_interval=8000, model_filename="model_test_temp_1e7",
-          temporal_weight=1e7,content_weight=1e5, style_weight=1e10)
+          image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_1e8",
+          temporal_weight=1e8, content_weight=1e5, style_weight=1e10)
     train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=200, checkpoint_interval=8000, model_filename="model_test_temp_1e8",
-          temporal_weight=1e8,content_weight=1e5, style_weight=1e10)
+          image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_5e8",
+          temporal_weight=5e8, content_weight=1e5, style_weight=1e10)
+    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
+          image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_1e9",
+          temporal_weight=1e9, content_weight=1e5, style_weight=1e10)
+    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
+          image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_5e6",
+          temporal_weight=5e6, content_weight=1e5, style_weight=1e10)
+
 
 def show_pic_from_dataset():
-    dataset_path = "../Data/Monkaa"
+    dataset_path = "../D" \
+                   "ata/Monkaa"
     train_dataset_path = os.path.join(dataset_path, "frames_cleanpass")
     flow_path = os.path.join(dataset_path, "optical_flow_resized")
     train_dataset = MyDataSet(train_dataset_path, flow_path, transform)
@@ -99,19 +122,20 @@ def show_flow_after_style():
     # img_next = Image.fromarray(stylized_frame)
     # img_next.show()
 
-def show_stylized_image(img):
-    model = "models/model_test_temp_1e5.pth"
+def show_stylized_image(img_path, model_path):
     has_cuda = 1
-    img = Image.open(img)
-    left_frame_stylized = stylize(has_cuda, img, model)
+    img = Image.open(img_path)
+    left_frame_stylized = stylize(has_cuda, img, model_path)
     stylized_frame = left_frame_stylized.clone().clamp(0, 255).numpy()
     stylized_frame = stylized_frame.transpose(1, 2, 0).astype("uint8")
     img = Image.fromarray(stylized_frame)
     img.show()
 
+
 def show_flow_on_image(img_path, flow_path):
     # TODO: Optical flow doesn't work correctly (prob dimensions). Fix
     img = Image.open(img_path)
+
     transform_to_tensor = transforms.Compose([transforms.ToTensor()])
     img = transform_to_tensor(img)
     C, H, W = img.shape
@@ -130,94 +154,15 @@ def show_flow_on_image(img_path, flow_path):
     print((new_image.shape, type(new_image[0, 0, 0])))
     print(mask.shape, type(mask))
     Image.fromarray(new_image).show()
-    Image.fromarray(mask).show()
+    # Image.fromarray(mask).show()
 
 
-# img1 = "../Data/Monkaa/frames_cleanpass/eating_x2/left/0049.png"
-# flow_path = "../Data/Monkaa/optical_flow/eating_x2/left/OpticalFlowIntoFuture_0049_L.pfm"
-# # show_stylized_image(img1)
-# img2 = "../Data/Monkaa/frames_cleanpass/eating_x2/left/0050.png"
-# # show_stylized_image(img2)
-#
-# Image.open(img1).show()
-# show_flow_on_image(img1, flow_path)
-# Image.open(img2).show()
-
-
-def resize_flow(flow, new_width, new_height):
-    height, width, _ = flow.shape
-    height_ratio = height / new_height
-    width_ration = width / new_width
-    x_axis = np.linspace(0, width - 1, new_width)
-    y_axis = np.linspace(0, height - 1, new_height)
-    x_axis = np.round(x_axis).astype(int)
-    y_axis = np.round(y_axis).astype(int)
-    xx, yy = np.meshgrid(x_axis, y_axis)
-    flow = flow[yy, xx, :]
-    flow[:, :, 0] = flow[:, :, 0] / width_ration
-    flow[:, :, 1] = flow[:, :, 1] / height_ratio
-    return flow
-
-
-def show_optical_flow():
-    # TODO: Optical flow doesn't work correctly (prob dimensions). Fix
-    im = Image.open("../Data/Monkaa/RGB_cleanpass/left/0049.png")
-    flow = utils_dataset.readFlow("../Data/Monkaa/optical_flow/forward/0049.pfm")
-    # flow = utils_dataset.read("./flow_resize_test.flo")
-    height, width, _ = np.asarray(im).shape
-
-    ########### Flow Resize ###########
-
-    # height = int(height / 2)
-    # width = int(width / 2)
-    height = 256
-    width = 256
-    im = im.resize((width, height), Image.ANTIALIAS)
-    flow = resize_flow(flow, width, height)
-    dir = "../test/new_folder"
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-    utils_dataset.write(os.path.join(dir, "flow_resize_test.flo"), flow)
-
-    ###################################
-
-    flow = np.round(flow)
-
-    new_pixel_place = np.indices((height, width)).transpose(1, 2, 0)
-    new_pixel_place = new_pixel_place+flow[:, :, ::-1]
-
-    new_pixel_place = new_pixel_place.astype(int)
-    im_array = np.asarray(im)
-    new_image = np.zeros_like(im_array)
-    valid_indices = np.where((new_pixel_place[:,:,0]>=0) & (new_pixel_place[:,:,0]<height)&
-                             (new_pixel_place[:,:,1]>=0) & (new_pixel_place[:,:,1]<width))
-    new_pixel_place = new_pixel_place[valid_indices[0], valid_indices[1],:]
-    new_image[new_pixel_place[:,0], new_pixel_place[:,1], :] = im_array[valid_indices[0], valid_indices[1], :]
-    mask = np.zeros_like(im)
-    mask[new_pixel_place[:,0], new_pixel_place[:,1]] = 1;
-
-    return new_image, mask
-
-
-img = Image.open("../Data/Monkaa/frames_cleanpass/eating_x2/left/0049.png")
-flow_path = "../Data/Monkaa/optical_flow/eating_x2/left/OpticalFlowIntoFuture_0049_L.pfm"
-height = 256
-width = 256
-# img = img.resize((width, height), Image.ANTIALIAS)
-transform_to_tensor = transforms.Compose([transforms.ToTensor()])
-img = transform_to_tensor(img)
-C, H, W = img.shape
-im_batch = torch.ones((1, C, H, W))
-im_batch[0, :, :, :] = img
-img = im_batch
-flow = utils_dataset.readFlow(flow_path)
-flow = flow[..., ::-1] - np.zeros_like(flow)
-flow = torch.from_numpy(flow)
-flow = flow.unsqueeze(0)
-new_image, mask = utils.apply_flow(img, flow)
-new_image = np.asarray(255 * new_image).astype("uint8")
-# new_image, mask = show_optical_flow()
-Image.fromarray(new_image).show()
-# Image.fromarray(mask*255).show()
-
-Image.open("../Data/Monkaa/frames_cleanpass/eating_x2/left/0050.png").show()
+# img1_path = "../Data/Monkaa/frames_cleanpass/eating_x2/left/0049.png"
+# img2_path = "../Data/Monkaa/frames_cleanpass/funnyworld_camera2_augmented0_x2/left/0461.png"
+# flow_path = "../Data/Monkaa/optical_flow/funnyworld_camera2_augmented0_x2/left/OpticalFlowIntoFuture_0461_L.pfm"
+model_path = "models/model_test_temp_5e6.pth"
+# show_stylized_image(img1, model_path)
+img2 = "../Data/Monkaa/frames_cleanpass/eating_x2/left/0050.png"
+show_stylized_image(img2, model_path)
+# train_models()
+# show_flow_on_image(img2_path, flow_path)
