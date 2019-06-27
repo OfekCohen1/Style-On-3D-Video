@@ -24,53 +24,64 @@ import fast_neural_style.neural_style.losses as losses
 #     train_dataset[video_name] = MyDataSet(video_dataset_path, transform)
 #     train_loader[video_name] = DataLoader(train_dataset[video_name], batch_size=1)
 
-image_size = 256
+image_size = (360, 640)
 transform = transforms.Compose([
     transforms.Resize(image_size),
     transforms.CenterCrop(image_size),
     transforms.ToTensor(),
 ])
 def train_models():
-    image_size = 256
+    image_size = (360, 640)
     dataset_path = "../Data/Monkaa"
     style_image_path = "images/style-images/mosaic.jpg"
     model_dir = "../fast_neural_style/models/"
     checkpoint_model_dir = "../fast_neural_style/models/checkpoint_models"
     has_cuda = 1
 
-    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
-    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_0",
-    #       temporal_weight=0, content_weight=1e5, style_weight=1e10)
-    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
-    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_1e5",
-    #       temporal_weight=1e5, content_weight=1e5, style_weight=1e10)
-    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
-    #       image_size=image_size, log_interval=100, checkpoint_interval=2500, model_filename="model_test_temp_2e5",
-    #       temporal_weight=2e5, content_weight=1e5, style_weight=1e10)
-    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
-    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_5e5",
-    #       temporal_weight=5e5, content_weight=1e5, style_weight=1e10)
-    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
-    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_8e5",
-    #       temporal_weight=8e5, content_weight=1e5, style_weight=1e10)
-    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
-    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_1e7",
-    #       temporal_weight=1e7, content_weight=1e5, style_weight=1e10)
-    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
-    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_5e7",
-    #       temporal_weight=5e7, content_weight=1e5, style_weight=1e10)
-    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
-    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_1e8",
-    #       temporal_weight=1e8, content_weight=1e5, style_weight=1e10)
-    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
-    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_5e8",
-    #       temporal_weight=5e8, content_weight=1e5, style_weight=1e10)
-    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
-    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_1e9",
-    #       temporal_weight=1e9, content_weight=1e5, style_weight=1e10)
     train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=1, checkpoint_interval=8000, model_filename="model_test_short_1e8",
-          temporal_weight=1e8, content_weight=1e5, style_weight=1e10, image_limit=200)
+          image_size=image_size, log_interval=100, checkpoint_interval=8000,
+          model_filename="model_test_temp_1e9_style_1e12",
+          temporal_weight=1e9, content_weight=1e5, style_weight=1e12)
+
+    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+          image_size=image_size, log_interval=100, checkpoint_interval=8000,
+          model_filename="model_test_temp_1e8_style_1e12",
+          temporal_weight=1e8, content_weight=1e5, style_weight=1e12)
+
+    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+          image_size=image_size, log_interval=100, checkpoint_interval=8000,
+          model_filename="model_test_temp_1e7_style_1e12",
+          temporal_weight=1e7, content_weight=1e5, style_weight=1e12)
+
+    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+          image_size=image_size, log_interval=100, checkpoint_interval=8000,
+          model_filename="model_test_temp_1e9_style_1e13",
+          temporal_weight=1e9, content_weight=1e5, style_weight=1e13)
+
+    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+          image_size=image_size, log_interval=100, checkpoint_interval=8000,
+          model_filename="model_test_temp_1e9_style_1e14",
+          temporal_weight=1e9, content_weight=1e5, style_weight=1e14)
+
+    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+          image_size=image_size, log_interval=100, checkpoint_interval=8000,
+          model_filename="model_test_temp_1e7_style_1e11",
+          temporal_weight=1e7, content_weight=1e5, style_weight=1e11)
+
+    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+          image_size=image_size, log_interval=100, checkpoint_interval=8000,
+          model_filename="model_test_temp_1e9_style_1e13_content_1e7",
+          temporal_weight=1e9, content_weight=1e7, style_weight=1e13)
+
+    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+          image_size=image_size, log_interval=100, checkpoint_interval=8000,
+          model_filename="model_test_temp_1e9_style_1e14_content_1e9",
+          temporal_weight=1e9, content_weight=1e9, style_weight=1e14)
+
+    # model_init = "models/model_test_temp_5e5.pth"
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=1, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=1, checkpoint_interval=2, model_filename="model_test_short_5e6",
+    #       temporal_weight=5e6, content_weight=1e5, style_weight=1e10, image_limit=100, model_init=model_init)
 
 
 def show_pic_from_dataset():
@@ -143,7 +154,7 @@ def show_flow_on_image(img_path, flow_path):
     img = im_batch
 
     flow = utils_dataset.readFlow(flow_path)
-    flow = flow[..., ::-1] - np.zeros_like(flow)
+    flow = flow[..., ::] - np.zeros_like(flow)
     flow = torch.from_numpy(flow)
     flow = flow.unsqueeze(0)
 
@@ -153,15 +164,15 @@ def show_flow_on_image(img_path, flow_path):
     print((new_image.shape, type(new_image[0, 0, 0])))
     print(mask.shape, type(mask))
     Image.fromarray(new_image).show()
-    # Image.fromarray(mask).show()
+    Image.fromarray(mask).show()
 
 
 # img1_path = "../Data/Monkaa/frames_cleanpass/eating_x2/left/0049.png"
 # img2_path = "../Data/Monkaa/frames_cleanpass/funnyworld_camera2_augmented0_x2/left/0461.png"
-# flow_path = "../Data/Monkaa/optical_flow/funnyworld_camera2_augmented0_x2/left/OpticalFlowIntoFuture_0461_L.pfm"
-model_path = "models/model_test_temp_5e6.pth"
+flow_path = "../Data/Monkaa/optical_flow/a_rain_of_stones_x2/right/OpticalFlowIntoFuture_0046_R.pfm"
+model_path = "models/model_test_temp_5e5.pth"
 # show_stylized_image(img1, model_path)
-img2 = "../Data/Monkaa/frames_cleanpass/eating_x2/left/0050.png"
+img2 = "../Data/Monkaa/frames_cleanpass/a_rain_of_stones_x2/right/0046.png"
 # show_stylized_image(img2, model_path)
 train_models()
-# show_flow_on_image(img2_path, flow_path)
+# show_flow_on_image(img2, flow_path)

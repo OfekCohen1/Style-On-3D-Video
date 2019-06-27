@@ -20,8 +20,8 @@ def resize_flow(flow, new_width, new_height):
 
 og_dir = "./Data/Monkaa/optical_flow"  # TODO: Check for forward/ backward directories
 new_dir = "./Data/Monkaa/optical_flow_resized"
-new_height = 256
-new_width = 256
+new_width = 640
+new_height = 360
 
 for root, dirs, files in os.walk(og_dir):
     for file in files:

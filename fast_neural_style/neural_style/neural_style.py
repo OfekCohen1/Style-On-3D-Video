@@ -32,9 +32,9 @@ def check_paths(args):
 
 
 def train(dataset_path, style_image_path, save_model_dir, has_cuda,
-          epochs=2, image_limit=None, checkpoint_model_dir=None, image_size=256, style_size=None, seed=42,
+          epochs=2, image_limit=None, checkpoint_model_dir=None, image_size=(360, 640), style_size=None, seed=42,
           content_weight=1, style_weight=10, temporal_weight=10, tv_weight=1e-3, lr=1e-3,
-          log_interval=500, checkpoint_interval=2000, model_filename="myModel"):
+          log_interval=500, checkpoint_interval=2000, model_filename="myModel", model_init=None):
     device = torch.device("cuda" if has_cuda else "cpu")
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -43,7 +43,7 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
     loss_filename = model_filename + '_losses.txt'
 
     transform = transforms.Compose([
-        transforms.Resize((image_size, image_size)),
+        transforms.Resize(image_size),
         # transforms.Resize(image_size),
         # transforms.CenterCrop(image_size),
         transforms.ToTensor(),
@@ -62,9 +62,20 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
     flow_path = os.path.join(dataset_path, "optical_flow_resized")
     train_dataset = MyDataSet(train_dataset_path, flow_path, transform,
                               image_limit=image_limit)  # remove if using all datasets
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size)
 
-    transformer_net = TransformerNet().to(device)
+    if model_init is not None:
+        transformer_net = TransformerNet()
+        state_dict = torch.load(model_init)
+        # remove saved deprecated running_* keys in InstanceNorm from the checkpoint
+        # for k in list(state_dict.keys()):
+        #     if re.search(r'in\d+\.running_(mean|var)$', k):
+        #         del state_dict[k]
+        transformer_net.load_state_dict(state_dict)
+        transformer_net.to(device)
+    else:
+        transformer_net = TransformerNet().to(device)
+
     optimizer = Adam(transformer_net.parameters(), lr)
 
     vgg = Vgg16(requires_grad=False).to(device)
@@ -85,7 +96,7 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
             (frames_curr_lr, flow_lr, frames_next_lr) = frames_and_flow
             batch_num += 1
             for i in [0, 1]:  # Left,  Right
-                to_save = (batch_num + 1) % (checkpoint_interval/4) == 0
+                to_save = (batch_num + 1) % checkpoint_interval == 0
                 frame_curr = frames_curr_lr[i]
                 frame_next = frames_next_lr[i]
                 flow = flow_lr[i]
@@ -97,14 +108,22 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
                     batch_num) + '.png'
                 namefile_frame_next = 'test_images/frame_next/frame_next_epo' + str(e) + 'batch_num' + str(
                     batch_num) + '.png'
+                namefile_frame_flow = 'test_images/frame_flow/frame_next_epo' + str(e) + 'batch_num' + str(
+                    batch_num) + '.png'
+                frame_flow, _ = utils.apply_flow(frame_curr, flow)
                 if to_save:
                     utils.save_image_loss(frame_curr_to_save, namefile_frame_curr)
                     utils.save_image_loss(frame_next_to_save, namefile_frame_next)
+                    utils.save_image_loss(frame_flow, namefile_frame_flow)
+
                 frame_curr = frame_curr.to(device)
                 frame_next = frame_next.to(device)
-                frame_style = transformer_net(frame_curr)
-                frame_next_style = transformer_net(frame_next)
-                # TODO: input frames to net as batch (frame_curr, frame_next)
+                frames_batch = torch.cat((frame_curr, frame_next))
+                frames_style_batch = transformer_net(frames_batch)
+                # frame_style = transformer_net(frame_curr)
+                # frame_next_style = transformer_net(frame_next)
+                frame_style = frames_style_batch[0, ::].unsqueeze(0)  # add batch dim
+                frame_next_style = frames_style_batch[1, ::].unsqueeze(0)  # add batch dim
                 features_frame = vgg(frame_curr)
                 features_frame_style = vgg(frame_style)
                 # print(frame_curr.shape)
@@ -125,12 +144,12 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
             if (batch_num + 1) % log_interval == 0:  # TODO: Choose between TQDM and printing
                 mesg = "{}\tEpoch {}:\t[{}/{}]\tcontent: {:.6f}\tstyle: {:.6f}\ttemporal: {:.6f}" \
                        "\ttotal: {:.6f}".format(
-                        time.ctime(), e + 1, batch_num + 1, len(train_dataset),
-                        content_loss.item(),
-                        style_loss.item(),
-                        temporal_loss.item(),
-                        total_loss.item()
-                        )
+                    time.ctime(), e + 1, batch_num + 1, len(train_dataset),
+                    content_loss.item(),
+                    style_loss.item(),
+                    temporal_loss.item(),
+                    total_loss.item()
+                )
                 # print(mesg)
                 losses_string = (str(content_loss.item()) + "," + str(style_loss.item()) + "," +
                                  str(temporal_loss.item()) + "," + str(total_loss.item()))
