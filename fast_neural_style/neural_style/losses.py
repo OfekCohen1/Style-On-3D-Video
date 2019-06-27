@@ -43,6 +43,7 @@ def temporal_loss(frame_curr, frame_next, flow, device, to_save=False, batch_num
         utils.save_image_loss_mask(mask, namefile_frame_next_flow_mask)
 
         # utils.save_image_loss(mask, namefile_frame_next_flow_mask)
+
     temporal_loss = ((1 / (height * width)) * torch.sum(mask * (frame_next_flow - frame_next) ** 2))
     return temporal_loss
 

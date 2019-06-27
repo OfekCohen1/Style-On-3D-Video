@@ -135,6 +135,7 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
                 losses_string = (str(content_loss.item()) + "," + str(style_loss.item()) + "," +
                                  str(temporal_loss.item()) + "," + str(total_loss.item()))
                 loss_list.append(losses_string)
+                utils.save_loss_file(loss_list, loss_filename)
 
             if (checkpoint_model_dir is not None and (batch_num + 1) % checkpoint_interval == 0):
                 transformer_net.eval().cpu()
