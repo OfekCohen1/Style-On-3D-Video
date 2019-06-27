@@ -53,29 +53,28 @@ def train_models():
     # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
     #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_8e5",
     #       temporal_weight=8e5, content_weight=1e5, style_weight=1e10)
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_1e7",
-          temporal_weight=1e7, content_weight=1e5, style_weight=1e10)
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_5e7",
-          temporal_weight=5e7, content_weight=1e5, style_weight=1e10)
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_1e8",
-          temporal_weight=1e8, content_weight=1e5, style_weight=1e10)
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_5e8",
-          temporal_weight=5e8, content_weight=1e5, style_weight=1e10)
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_1e9",
-          temporal_weight=1e9, content_weight=1e5, style_weight=1e10)
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_5e6",
-          temporal_weight=5e6, content_weight=1e5, style_weight=1e10)
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_1e7",
+    #       temporal_weight=1e7, content_weight=1e5, style_weight=1e10)
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_5e7",
+    #       temporal_weight=5e7, content_weight=1e5, style_weight=1e10)
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_1e8",
+    #       temporal_weight=1e8, content_weight=1e5, style_weight=1e10)
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_5e8",
+    #       temporal_weight=5e8, content_weight=1e5, style_weight=1e10)
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=4, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000, model_filename="model_test_temp_1e9",
+    #       temporal_weight=1e9, content_weight=1e5, style_weight=1e10)
+    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+          image_size=image_size, log_interval=1, checkpoint_interval=8000, model_filename="model_test_short_1e8",
+          temporal_weight=1e8, content_weight=1e5, style_weight=1e10, image_limit=200)
 
 
 def show_pic_from_dataset():
-    dataset_path = "../D" \
-                   "ata/Monkaa"
+    dataset_path = "../Data/Monkaa"
     train_dataset_path = os.path.join(dataset_path, "frames_cleanpass")
     flow_path = os.path.join(dataset_path, "optical_flow_resized")
     train_dataset = MyDataSet(train_dataset_path, flow_path, transform)
@@ -163,6 +162,6 @@ def show_flow_on_image(img_path, flow_path):
 model_path = "models/model_test_temp_5e6.pth"
 # show_stylized_image(img1, model_path)
 img2 = "../Data/Monkaa/frames_cleanpass/eating_x2/left/0050.png"
-show_stylized_image(img2, model_path)
-# train_models()
+# show_stylized_image(img2, model_path)
+train_models()
 # show_flow_on_image(img2_path, flow_path)

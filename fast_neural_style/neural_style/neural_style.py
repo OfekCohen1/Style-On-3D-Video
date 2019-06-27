@@ -131,7 +131,7 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
                         temporal_loss.item(),
                         total_loss.item()
                         )
-                print(mesg)
+                # print(mesg)
                 losses_string = (str(content_loss.item()) + "," + str(style_loss.item()) + "," +
                                  str(temporal_loss.item()) + "," + str(total_loss.item()))
                 loss_list.append(losses_string)
