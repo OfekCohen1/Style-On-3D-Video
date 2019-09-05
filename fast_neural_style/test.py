@@ -132,6 +132,7 @@ def show_flow_after_style():
     # img_next = Image.fromarray(stylized_frame)
     # img_next.show()
 
+
 def show_stylized_image(img_path, model_path):
     has_cuda = 1
     img = Image.open(img_path)
@@ -167,12 +168,42 @@ def show_flow_on_image(img_path, flow_path):
     Image.fromarray(mask).show()
 
 
-# img1_path = "../Data/Monkaa/frames_cleanpass/eating_x2/left/0049.png"
+def show_disparity_on_image(img_path, disparity_path):
+    img = Image.open(img_path)
+
+    transform_to_tensor = transforms.Compose([transforms.ToTensor()])
+    img = transform_to_tensor(img)
+    C, H, W = img.shape
+    im_batch = torch.ones((1, C, H, W))
+    im_batch[0, :, :, :] = img
+    img = im_batch
+
+    disparity = utils_dataset.read(disparity_path)
+    disparity = disparity[..., ::] - np.zeros_like(disparity)
+    disparity = torch.from_numpy(disparity)
+    disparity = disparity.unsqueeze(0)
+    temp = disparity[:, :, :, None]
+    disparity = torch.cat((temp, torch.zeros_like(temp)), dim=3)
+    disparity = disparity * (-1)
+
+    new_image, mask = utils.apply_flow(img, disparity)
+    new_image = np.asarray(255 * new_image).astype("uint8")
+    mask = 255 * np.asarray(mask).astype("uint8")
+    print((new_image.shape, type(new_image[0, 0, 0])))
+    print(mask.shape, type(mask))
+    Image.fromarray(new_image).show()
+
+
+img1_path = "./images/content-images/amber.jpg"
 # img2_path = "../Data/Monkaa/frames_cleanpass/funnyworld_camera2_augmented0_x2/left/0461.png"
-flow_path = "../Data/Monkaa/optical_flow/a_rain_of_stones_x2/right/OpticalFlowIntoFuture_0046_R.pfm"
-model_path = "models/model_test_temp_5e5.pth"
+# flow_path = "../Data/Monkaa/optical_flow/a_rain_of_stones_x2/right/OpticalFlowIntoFuture_0046_R.pfm"
+model_path = "models/model_test_temp_0_style_1e5_content_1.pth"
 # show_stylized_image(img1, model_path)
-img2 = "../Data/Monkaa/frames_cleanpass/a_rain_of_stones_x2/right/0046.png"
-# show_stylized_image(img2, model_path)
-train_models()
+# img2 = "../Data/Monkaa/frames_cleanpass/a_rain_of_stones_x2/right/0046.png"
+img2 = "../Sampler/RGB_cleanpass/left/0050.png"
+flow_path = "../Sampler/disparity/0050.pfm"
+# show_stylized_image(img1_path, model_path)
+# train_models()
 # show_flow_on_image(img2, flow_path)
+show_disparity_on_image(img2, flow_path)
+

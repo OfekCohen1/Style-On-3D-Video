@@ -1,0 +1,5 @@
+import tarfile
+
+tar = tarfile.open("../../monkaa__frames_cleanpass.tar")
+tar.extractall(path="./Data/Monkaa")
+tar.close()
