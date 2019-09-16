@@ -10,6 +10,7 @@ import torch
 from fast_neural_style.neural_style.MyDataSet import MyDataSet
 import fast_neural_style.neural_style.utils as utils
 import fast_neural_style.neural_style.utils_dataset as utils_dataset
+import flow_resize_script
 from torch.utils.data import DataLoader
 import numpy as np
 from tqdm import tqdm
@@ -179,13 +180,15 @@ def show_disparity_on_image(img_path, disparity_path):
     img = im_batch
 
     disparity = utils_dataset.read(disparity_path)
+    # disparity = disparity * (-1)
+    # disparity = flow_resize_script.fix_disparity(disparity)
+
     test_img = disparity / disparity.max() * 255
     disparity = disparity[..., ::] - np.zeros_like(disparity)
     disparity = torch.from_numpy(disparity)
     disparity = disparity.unsqueeze(0)
-    temp = disparity[:, :, :, None]
-    disparity = torch.cat((temp, torch.zeros_like(temp)), dim=3)
-    # disparity = disparity * (-1)
+    # temp = disparity[:, :, :, None]
+    # disparity = torch.cat((temp, torch.zeros_like(temp)), dim=3)
 
     new_image, mask = utils.apply_flow(img, disparity)
     new_image = np.asarray(255 * new_image).astype("uint8")
@@ -194,20 +197,25 @@ def show_disparity_on_image(img_path, disparity_path):
     print(mask.shape, type(mask))
     Image.fromarray(new_image).show()
     # Image.fromarray(test_img).show()
-    # Image.fromarray(mask).show()
+    Image.fromarray(mask).show()
 
+
+def fix_disparity(disparity):
+    height = disparity.shape
+    disparity_fixed = np.zeros_like(disparity)
+    return disparity_fixed
 
 img1_path = "./images/content-images/amber.jpg"
 # img2_path = "../Data/Monkaa/frames_cleanpass/funnyworld_camera2_augmented0_x2/left/0461.png"
 # flow_path = "../Data/Monkaa/optical_flow/a_rain_of_stones_x2/right/OpticalFlowIntoFuture_0046_R.pfm"
 model_path = "models/model_test_temp_0_style_1e5_content_1.pth"
 # show_stylized_image(img1, model_path)
-# img2 = "../Data/Monkaa/frames_cleanpass/eating_x2/right/0049.png"
-img2 = "../Sampler/RGB_cleanpass/left/0049.png"
+img2 = "../Data/Monkaa/frames_cleanpass/a_rain_of_stones_x2/left/0000.png"
+# img2 = "../Sampler/RGB_cleanpass/left/0049.png"
 flow_path = "../Sampler/optical_flow/0049.pfm"
-disparity_path = "../Data/Monkaa/disparity/eating_x2/right/0049.pfm"
+disparity_path = "../Data/Monkaa/disparity_fixed/a_rain_of_stones_x2/left/0000.flo"
 # show_stylized_image(img1_path, model_path)
 # train_models()
-show_flow_on_image(img2, flow_path)
-# show_disparity_on_image(img2, disparity_path)
+# show_flow_on_image(img2, flow_path)
+show_disparity_on_image(img2, disparity_path)
 
