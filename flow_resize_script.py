@@ -18,7 +18,7 @@ def resize_flow(flow, new_width, new_height):
     return flow
 
 
-og_dir = "./Data/Monkaa/optical_flow"
+og_dir = "./Data/Monkaa/optical_flow"  # TODO: Check for forward/ backward directories
 new_dir = "./Data/Monkaa/optical_flow_resized"
 new_height = 256
 new_width = 256
@@ -29,8 +29,9 @@ for root, dirs, files in os.walk(og_dir):
             flow_path = os.path.join(root, file)
             flow = utils_dataset.readFlow(flow_path)
             flow_resized = resize_flow(flow, new_width, new_height)
-            _, dir_folder = os.path.split(root)
-            flow_resized_path = os.path.join(new_dir, dir_folder)
+            dir_folder, lr_folder = os.path.split(root)
+            _, scene = os.path.split(dir_folder)
+            flow_resized_path = os.path.join(new_dir, scene, lr_folder)
             if not os.path.exists(flow_resized_path):
                 os.makedirs(flow_resized_path)
             file_name = file.replace('.pfm', '.flo')

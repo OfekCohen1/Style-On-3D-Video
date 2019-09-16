@@ -218,7 +218,7 @@ def get_pics_direcs(dataset_path, image_limit = None):
             list_pics_left = os.listdir(os.path.join(dir_name, 'left/'))
             list_pics_right = os.listdir(os.path.join(dir_name, 'right/'))
             for i in range(len(list_pics_left) - 1):  # Don't include last picture, explained in MyDataSet
-                tuple_left_right = (os.path.join(dir_name, 'left/', list_pics_left[i]), os.path.join(dir_name, 'right/', list_pics_left[i]))
+                tuple_left_right = (os.path.join(dir_name, 'left/', list_pics_left[i]), os.path.join(dir_name, 'right/', list_pics_right[i]))
                 pic_direcs_list.append(tuple_left_right)
                 if (image_limit is not None) and (len(pic_direcs_list) >= image_limit):
                     return pic_direcs_list
