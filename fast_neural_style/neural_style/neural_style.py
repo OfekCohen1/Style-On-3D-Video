@@ -102,7 +102,7 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
             frames_batch = frames_batch.to(device)
             frames_style_batch = transformer_net(frames_batch)  # Batch of 2 x 6 x H x W
             frame_style_concat = frames_style_batch[0, ::].unsqueeze(0)  # 1 x 6 x H x W after style
-            frame_next_style_concat = frames_style_batch[1, ::].unsqeeze(0)
+            frame_next_style_concat = frames_style_batch[1, ::].unsqueeze(0)
 
             # disparity_loss_l2r = losses.disparity_loss(frame_style_concat[:, 0:3, ::], frame_style_concat[:, 3:6, ::],
             #                                            disparity[0], device)

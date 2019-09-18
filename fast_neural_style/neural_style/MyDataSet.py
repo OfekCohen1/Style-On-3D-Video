@@ -10,7 +10,7 @@ class MyDataSet(Dataset):
     def __init__(self, dataset_path, transform, image_limit=None):
         self.train_dataset_path = os.path.join(dataset_path, "frames_cleanpass")
         self.flow_path = os.path.join(dataset_path, "optical_flow_resized")
-        self.disparity_path = os.path.join(dataset_path, "disparity")
+        self.disparity_path = os.path.join(dataset_path, "disparity_resized")
         self.transform = transform
         self.pic_direcs_list = utils_dataset.get_pics_direcs(self.train_dataset_path, image_limit=image_limit)
 

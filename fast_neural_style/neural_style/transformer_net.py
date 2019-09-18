@@ -6,9 +6,9 @@ class TransformerNet(torch.nn.Module):
         super(TransformerNet, self).__init__()
         # Initial convolution layers
         self.conv1 = ConvLayer(6, 48, kernel_size=9, stride=1)
-        self.in1 = torch.nn.InstanceNorm2d(32, affine=True)
+        self.in1 = torch.nn.InstanceNorm2d(48, affine=True)
         self.conv2 = ConvLayer(48, 96, kernel_size=3, stride=2)
-        self.in2 = torch.nn.InstanceNorm2d(64, affine=True)
+        self.in2 = torch.nn.InstanceNorm2d(96, affine=True)
         self.conv3 = ConvLayer(96, 192, kernel_size=3, stride=2)
         self.in3 = torch.nn.InstanceNorm2d(192, affine=True)
         # Residual layers
