@@ -39,45 +39,47 @@ def train_models():
     checkpoint_model_dir = "../fast_neural_style/models/checkpoint_models"
     has_cuda = 1
 
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=8000,
-          model_filename="model_test_temp_1e9_style_1e12",
-          temporal_weight=1e9, content_weight=1e5, style_weight=1e12)
+    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2,  image_size=image_size)
 
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=8000,
-          model_filename="model_test_temp_1e8_style_1e12",
-          temporal_weight=1e8, content_weight=1e5, style_weight=1e12)
-
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=8000,
-          model_filename="model_test_temp_1e7_style_1e12",
-          temporal_weight=1e7, content_weight=1e5, style_weight=1e12)
-
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=8000,
-          model_filename="model_test_temp_1e9_style_1e13",
-          temporal_weight=1e9, content_weight=1e5, style_weight=1e13)
-
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=8000,
-          model_filename="model_test_temp_1e9_style_1e14",
-          temporal_weight=1e9, content_weight=1e5, style_weight=1e14)
-
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=8000,
-          model_filename="model_test_temp_1e7_style_1e11",
-          temporal_weight=1e7, content_weight=1e5, style_weight=1e11)
-
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=8000,
-          model_filename="model_test_temp_1e9_style_1e13_content_1e7",
-          temporal_weight=1e9, content_weight=1e7, style_weight=1e13)
-
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=8000,
-          model_filename="model_test_temp_1e9_style_1e14_content_1e9",
-          temporal_weight=1e9, content_weight=1e9, style_weight=1e14)
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000,
+    #       model_filename="model_test_temp_1e9_style_1e12",
+    #       temporal_weight=1e9, content_weight=1e5, style_weight=1e12)
+    #
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000,
+    #       model_filename="model_test_temp_1e8_style_1e12",
+    #       temporal_weight=1e8, content_weight=1e5, style_weight=1e12)
+    #
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000,
+    #       model_filename="model_test_temp_1e7_style_1e12",
+    #       temporal_weight=1e7, content_weight=1e5, style_weight=1e12)
+    #
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000,
+    #       model_filename="model_test_temp_1e9_style_1e13",
+    #       temporal_weight=1e9, content_weight=1e5, style_weight=1e13)
+    #
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000,
+    #       model_filename="model_test_temp_1e9_style_1e14",
+    #       temporal_weight=1e9, content_weight=1e5, style_weight=1e14)
+    #
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000,
+    #       model_filename="model_test_temp_1e7_style_1e11",
+    #       temporal_weight=1e7, content_weight=1e5, style_weight=1e11)
+    #
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000,
+    #       model_filename="model_test_temp_1e9_style_1e13_content_1e7",
+    #       temporal_weight=1e9, content_weight=1e7, style_weight=1e13)
+    #
+    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+    #       image_size=image_size, log_interval=100, checkpoint_interval=8000,
+    #       model_filename="model_test_temp_1e9_style_1e14_content_1e9",
+    #       temporal_weight=1e9, content_weight=1e9, style_weight=1e14)
 
     # model_init = "models/model_test_temp_5e5.pth"
     # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=1, checkpoint_model_dir=checkpoint_model_dir,
@@ -215,7 +217,7 @@ img2 = "../Data/Monkaa/frames_cleanpass/a_rain_of_stones_x2/left/0000.png"
 flow_path = "../Sampler/optical_flow/0049.pfm"
 disparity_path = "../Data/Monkaa/disparity_fixed/a_rain_of_stones_x2/left/0000.flo"
 # show_stylized_image(img1_path, model_path)
-# train_models()
+train_models()
 # show_flow_on_image(img2, flow_path)
-show_disparity_on_image(img2, disparity_path)
+# show_disparity_on_image(img2, disparity_path)
 
