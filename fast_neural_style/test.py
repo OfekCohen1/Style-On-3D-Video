@@ -219,4 +219,4 @@ def show_disparity_on_image(img_path, disparity_path):
 # train_dataset = MyDataSet(dataset_path, transform,
 #                           image_limit=None)  # remove if using all datasets
 # train_loader = DataLoader(train_dataset, batch_size=1)
-show_pic_from_dataset()
+# show_pic_from_dataset()
