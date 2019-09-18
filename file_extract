@@ -1,0 +1,6 @@
+import tarfile
+
+tar = tarfile.open("../../monkaa__disparity.tar.bz2", "r:bz2")
+tar.extractall(path="./Data/Monkaa")
+tar.close()
+
