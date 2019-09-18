@@ -44,8 +44,8 @@ def temporal_loss(frame_curr, frame_next, flow, device, to_save=False, batch_num
 
         # utils.save_image_loss(mask, namefile_frame_next_flow_mask)
 
-    temp_loss = ((1 / (height * width)) * torch.sum(mask * (frame_next_flow - frame_next) ** 2))
-    return temp_loss
+    temporal_loss = ((1 / (height * width)) * torch.sum(mask * (frame_next_flow - frame_next) ** 2))
+    return temporal_loss
 
 
 def tv_loss(frame_curr):
@@ -53,17 +53,3 @@ def tv_loss(frame_curr):
                        torch.sum(torch.abs(frame_curr[:, :, :-1, :] - frame_curr[:, :, 1:, :])))
 
     return total_variation
-
-
-def disparity_loss(frame_before_disparity, real_frame_to_compare, disparity, device):
-    # Add stuff if we want to save disparity pictures
-    frame_after_disparity, mask = utils.apply_flow(frame_before_disparity, disparity)
-    frame_after_disparity = frame_after_disparity.to(device)
-    mask = mask.to(device)
-    real_frame_to_compare = real_frame_to_compare.permute(2, 3, 1, 0)
-    real_frame_to_compare = real_frame_to_compare[:, :, :, 0]  # H x W x C
-    frame_before_disparity = frame_before_disparity.permute(2, 3, 1, 0).squeeze(3)
-    height, width, _ = mask.shape
-
-    disp_loss = ((1 / (height * width)) * torch.sum(mask * (real_frame_to_compare - frame_after_disparity) ** 2))
-    return disp_loss
