@@ -3,6 +3,8 @@ import os
 import sys
 import time
 import re
+
+from cv2 import text_OCRBeamSearchDecoder
 from tqdm import tqdm
 
 import numpy as np
@@ -33,7 +35,7 @@ def check_paths(args):
 
 def train(dataset_path, style_image_path, save_model_dir, has_cuda,
           epochs=2, image_limit=None, checkpoint_model_dir=None, image_size=(360, 640), style_size=None, seed=42,
-          content_weight=1, style_weight=10, temporal_weight=10, tv_weight=1e-3, disp_weight = 1e-3, lr=1e-3,
+          content_weight=1, style_weight=10, temporal_weight=10, tv_weight=1e-3, disp_weight=1e-3, lr=1e-3,
           log_interval=500, checkpoint_interval=2000, model_filename="myModel", model_init=None):
     device = torch.device("cuda" if has_cuda else "cpu")
     np.random.seed(seed)
@@ -95,20 +97,23 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
 
             to_save = (batch_num + 1) % checkpoint_interval == 0
             optimizer.zero_grad()
-            # feed net both L+R pictures together in channel dim
-            frames_curr_concat = torch.cat((frames_curr_lr[0], frames_curr_lr[1]), 1)  # concat in channel dim
-            frames_next_concat = torch.cat((frames_next_lr[0], frames_next_lr[1]), 1)  # 1 x 6 x H x W
-            frames_batch = torch.cat((frames_curr_concat, frames_next_concat), 0)
-            frames_batch = frames_batch.to(device)
-            frames_style_batch = transformer_net(frames_batch)  # Batch of 2 x 6 x H x W
-            frame_style_concat = frames_style_batch[0, ::].unsqueeze(0)  # 1 x 6 x H x W after style
-            frame_next_style_concat = frames_style_batch[1, ::].unsqueeze(0)
 
-            # disparity_loss_l2r = losses.disparity_loss(frame_style_concat[:, 0:3, ::], frame_style_concat[:, 3:6, ::],
-            #                                            disparity[0], device)
-            # disparity_loss_r2l = losses.disparity_loss(frame_style_concat[:, 3:6, ::], frame_style_concat[:, 0:3, ::],
-            #                                            disparity[1], device)
+            frames_left_batch = torch.cat((frames_curr_lr[0], frames_next_lr[0]), 0)
+            frames_right_batch = torch.cat((frames_curr_lr[1], frames_next_lr[1]), 0)
+
+            frames_left_batch = frames_left_batch.to(device)
+            frames_right_batch = frames_right_batch.to(device)
+
+            frame_style_left, frame_style_right = transformer_net(frames_left_batch, frames_right_batch)  # Two batches 2 x 3 x H x W
+            frame_curr_style_combined = (frame_style_left[0, ::].unsqueeze(0), frame_style_right[0, ::].unsqueeze(0))
+            frame_next_style_combined = (frame_style_left[1, ::].unsqueeze(0), frame_style_right[1, ::].unsqueeze(0))
+
+            disparity_loss_l2r = losses.disparity_loss(frame_curr_style_combined[0], frame_curr_style_combined[1],
+                                                       disparity[0], device, to_save, batch_num, e)
+            disparity_loss_r2l = losses.disparity_loss(frame_curr_style_combined[1], frame_curr_style_combined[0],
+                                                       disparity[1], device)
             # total_loss = disp_weight * (disparity_loss_l2r + disparity_loss_r2l)
+            total_loss = disp_weight * disparity_loss_l2r
 
             for i in [0, 1]:  # Left,  Right
                 frame_curr = frames_curr_lr[i]
@@ -117,8 +122,8 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
                 frame_next = frame_next.to(device)
                 flow = flow_lr[i]
                 batch_size = len(frame_curr)
-                frame_style = frame_style_concat[:, 3*i:3*(i+1), ::]  # get 0-2 or 3-5, depends on i
-                frame_next_style = frame_next_style_concat[:, 3*i:3*(i+1), ::]
+                frame_style = frame_curr_style_combined[i]
+                frame_next_style = frame_next_style_combined[i]
                 features_frame = vgg(frame_curr)
                 features_frame_style = vgg(frame_style)
                 content_loss = losses.content_loss(features_frame, features_frame_style)
@@ -136,11 +141,11 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
                 frame_curr_to_save = frame_curr.permute(2, 3, 1, 0).squeeze(3)
                 frame_next_to_save = frame_next.permute(2, 3, 1, 0).squeeze(3)
                 namefile_frame_curr = 'test_images/frame_curr/frame_curr_epo' + str(e) + 'batch_num' + str(
-                    batch_num) + '.png'
+                    batch_num) + "eye" + str(i) + '.png'
                 namefile_frame_next = 'test_images/frame_next/frame_next_epo' + str(e) + 'batch_num' + str(
-                    batch_num) + '.png'
+                    batch_num) + "eye" + str(i) + '.png'
                 namefile_frame_flow = 'test_images/frame_flow/frame_next_epo' + str(e) + 'batch_num' + str(
-                    batch_num) + '.png'
+                    batch_num) + "eye" + str(i) + '.png'
                 frame_flow, _ = utils.apply_flow(frame_curr, flow)
                 if to_save:
                     utils.save_image_loss(frame_curr_to_save, namefile_frame_curr)
@@ -172,7 +177,6 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
                                        str(e + 1) + "_batch_id_" + str(batch_num + 1) + ".pth")
                 ckpt_model_path = os.path.join(checkpoint_model_dir, ckpt_model_filename)
                 torch.save(transformer_net.state_dict(), ckpt_model_path)
-                utils.save_loss_file(loss_list, loss_filename)
                 transformer_net.to(device).train()
 
     # save model
@@ -185,16 +189,17 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
     print("\nDone, trained model saved at", save_model_path)
 
 
-def stylize(has_cuda, content_image, model, output_image_path=None, content_scale=None):
+def stylize(has_cuda, left_image, right_image, model, output_image_path=None, content_scale=None):
     device = torch.device("cuda" if has_cuda else "cpu")
 
-    # content_image = utils.load_image(content_image_path, scale=content_scale)
     content_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
-    content_image = content_transform(content_image)
-    content_image = content_image.unsqueeze(0).to(device)
+    left_image = content_transform(left_image)
+    left_image = left_image.unsqueeze(0).to(device)
+    right_image = content_transform(right_image)
+    right_image = right_image.unsqueeze(0).to(device)
 
     with torch.no_grad():
         style_model = TransformerNet()
@@ -205,11 +210,14 @@ def stylize(has_cuda, content_image, model, output_image_path=None, content_scal
                 del state_dict[k]
         style_model.load_state_dict(state_dict)
         style_model.to(device)
-        output = style_model(content_image).cpu()
-    # utils.save_image(output_image_path, output[0])
-    output = utils.un_normalize_batch(output)
+        output_left, output_right = style_model(left_image, right_image)
 
-    return output[0]
+    # output_left = output_left.cpu()
+    # output_right = output_right.cpu()
+    output_left = utils.un_normalize_batch(output_left)
+    output_right = utils.un_normalize_batch(output_right)
+
+    return output_left[0], output_right[0]
 
 
 def main():

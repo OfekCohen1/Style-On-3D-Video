@@ -55,7 +55,8 @@ def tv_loss(frame_curr):
     return total_variation
 
 
-def disparity_loss(frame_before_disparity, real_frame_to_compare, disparity, device):
+def disparity_loss(frame_before_disparity, real_frame_to_compare, disparity, device,
+                   to_save=False, batch_num=None, e=None):
     # Add stuff if we want to save disparity pictures
     frame_after_disparity, mask = utils.apply_flow(frame_before_disparity, disparity)
     frame_after_disparity = frame_after_disparity.to(device)
@@ -64,6 +65,20 @@ def disparity_loss(frame_before_disparity, real_frame_to_compare, disparity, dev
     real_frame_to_compare = real_frame_to_compare[:, :, :, 0]  # H x W x C
     frame_before_disparity = frame_before_disparity.permute(2, 3, 1, 0).squeeze(3)
     height, width, _ = mask.shape
+
+    if to_save:
+        namefile_frame_before = 'test_images/frame_before_disp/frame_before_disp_epo' +\
+                              str(e) + 'batch_num' + str(batch_num) + '.png'
+        namefile_frame_to_compare = 'test_images/frame_to_compare_disp/frame_to_compare_disp_epo_' +\
+                              str(e) + 'batch_num_' + str(batch_num) + '.png'
+        namefile_frame_after = ('test_images/frame_after_disp/frame_after_disp_epo' + str(e) +
+                                    'batch_num_' + str(batch_num) + '.png')
+        namefile_frame_next_disp_mask = ('test_images/frame_disp_mask/frame_disp_mask_epo' + str(e) +
+                                    'batch_num_' + str(batch_num) + '.png')
+        utils.save_image_loss(frame_before_disparity, namefile_frame_before)
+        utils.save_image_loss(real_frame_to_compare, namefile_frame_to_compare)
+        utils.save_image_loss(frame_after_disparity, namefile_frame_after)
+        utils.save_image_loss_mask(mask, namefile_frame_next_disp_mask)
 
     disp_loss = ((1 / (height * width)) * torch.sum(mask * (real_frame_to_compare - frame_after_disparity) ** 2))
     return disp_loss
