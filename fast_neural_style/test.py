@@ -39,31 +39,21 @@ def train_models():
     checkpoint_model_dir = "../fast_neural_style/models/checkpoint_models"
     has_cuda = 1
     #
-    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=3, checkpoint_model_dir=checkpoint_model_dir,
-    #       image_size=image_size, log_interval=100, checkpoint_interval=4000,
-    #       model_filename="model_test_temp_1e4_content_1e4_style_3e8_disp_0",
-    #       temporal_weight=1e4, content_weight=1e4, style_weight=3e8, disp_weight=0)
 
     train(dataset_path, style_image_path, model_dir, has_cuda, epochs=3, checkpoint_model_dir=checkpoint_model_dir,
           image_size=image_size, log_interval=100, checkpoint_interval=4000,
-          model_filename="model_test_temp_1e4_content_1e4_style_2.3e8_disp_0",
-          temporal_weight=1e4, content_weight=1e4, style_weight=2.3e8, disp_weight=0)
+          model_filename="model_test_temp_7.5e4_content_1e4_style_8e8_disp_5e3_both_eyes",
+          temporal_weight=7.5e4, content_weight=1e4, style_weight=8e8, disp_weight=5e3)
 
     train(dataset_path, style_image_path, model_dir, has_cuda, epochs=3, checkpoint_model_dir=checkpoint_model_dir,
           image_size=image_size, log_interval=100, checkpoint_interval=4000,
-          model_filename="model_test_temp_1e4_content_1e4_style_2.6e8_disp_0",
-          temporal_weight=1e4, content_weight=1e4, style_weight=2.6e8, disp_weight=0)
-
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=3, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=4000,
-          model_filename="model_test_temp_1e4_content_1e4_style_1.5e8_disp_0",
-          temporal_weight=1e4, content_weight=1e4, style_weight=1.5e8, disp_weight=0)
+          model_filename="model_test_temp_8e4_content_2e4_style_8e8_disp_5e3_both_eyes",
+          temporal_weight=8e4, content_weight=2e4, style_weight=8e8, disp_weight=5e3)
 
     # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=3, checkpoint_model_dir=checkpoint_model_dir,
     #       image_size=image_size, log_interval=100, checkpoint_interval=4000,
-    #       model_filename="model_test_temp_1e4_content_1e4_style_2e8_disp_1e2",
-    #       temporal_weight=1e4, content_weight=1e4, style_weight=2e8, disp_weight=5e2)
-
+    #       model_filename="model_test_temp_8e4_content_2e4_style_8e8_disp_5e3_both_eyes",
+    #       temporal_weight=8e4, content_weight=2e4, style_weight=2.3e8, disp_weight=5e3)
 
 
 def show_pic_from_dataset():
@@ -189,11 +179,15 @@ def show_disparity_on_image(img_path, disparity_path):
 
 # img_path_left = "../Data/Monkaa/frames_cleanpass/eating_x2/left/0049.png"
 # img_path_right = "../Data/Monkaa/frames_cleanpass/eating_x2/right/0049.png"
-# img_path_left = "images/content-images/left_image_new.png"
-# img_path_right = "images/content-images/right_image_new.png"
-#
-# model_path = "models/model_test_temp_1e4_content_1e4_style_2e8_disp_0.pth"
-# show_stylized_image(img_path_left, img_path_right, model_path)
+
+# img_path_left = "../Data/Monkaa/frames_cleanpass/eating_x2/left/0049.png"
+# img_path_right = "../Data/Monkaa/frames_cleanpass/eating_x2/right/0049.png"
+
+img_path_left = "images/content-images/cubic_left.jpg"
+img_path_right = "images/content-images/cubic_right.jpg"
+
+model_path = "models/model_test_temp_7.5e4_content_1e4_style_8e8_disp_5e3_both_eyes.pth"
+show_stylized_image(img_path_left, img_path_right, model_path)
 
 # img_path_left = "../Data/Monkaa/frames_cleanpass/treeflight_augmented1_x2/left/0358.png"
 # disparity_path = "../Data/Monkaa/disparity_resized/treeflight_augmented1_x2/left/0358.flo"

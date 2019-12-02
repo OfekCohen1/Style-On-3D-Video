@@ -112,8 +112,8 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
                                                        disparity[0], device, to_save, batch_num, e)
             disparity_loss_r2l = losses.disparity_loss(frame_curr_style_combined[1], frame_curr_style_combined[0],
                                                        disparity[1], device)
-            # total_loss = disp_weight * (disparity_loss_l2r + disparity_loss_r2l)
-            total_loss = disp_weight * disparity_loss_l2r
+            total_loss = disp_weight * (disparity_loss_l2r + disparity_loss_r2l)
+            # total_loss = disp_weight * disparity_loss_l2r
 
             for i in [0, 1]:  # Left,  Right
                 frame_curr = frames_curr_lr[i]

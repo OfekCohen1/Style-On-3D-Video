@@ -41,7 +41,9 @@ def un_normalize_batch(batch):
     # un- normalize imagenet mean and std
     mean = batch.new_tensor([0.485, 0.456, 0.406]).view(-1, 1, 1)
     std = batch.new_tensor([0.229, 0.224, 0.225]).view(-1, 1, 1)
-    return ((batch * std) + mean) * 255
+    new_batch = (batch * std) + mean
+    # new_batch =  (new_batch - torch.min(new_batch)) / ( torch.max(new_batch) - torch.min(new_batch))
+    return new_batch * 255
 
 
 def apply_flow(img, flow):
