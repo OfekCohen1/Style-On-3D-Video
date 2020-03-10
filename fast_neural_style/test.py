@@ -34,26 +34,29 @@ transform = transforms.Compose([
 def train_models():
     image_size = (360, 640)
     dataset_path = "../Data/Monkaa"
-    style_image_path = "images/style-images/mosaic.jpg"
-    model_dir = "../fast_neural_style/models/"
+    style_image_path = "images/style-images/colors.jpg"
+    model_dir = "../fast_neural_style/models/Colors/"
     checkpoint_model_dir = "../fast_neural_style/models/checkpoint_models"
     has_cuda = 1
-    #
 
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=3, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=4000,
-          model_filename="model_test_temp_7.5e4_content_1e4_style_8e8_disp_5e3_both_eyes",
-          temporal_weight=7.5e4, content_weight=1e4, style_weight=8e8, disp_weight=5e3)
+    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+          image_size=image_size, log_interval=100, checkpoint_interval=2000,
+          model_filename="colors_temp_7e4_content_3e4_style_1e9_disp_1e5_epochs_2_fine_tune",
+          temporal_weight=7e4, content_weight=3e4, style_weight=1e9, disp_weight=1e5, lr=2e-4,
+          model_init="colors_temp_7e4_content_3e4_style_1e9_disp_0_epochs_6.pth")
 
-    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=3, checkpoint_model_dir=checkpoint_model_dir,
-          image_size=image_size, log_interval=100, checkpoint_interval=4000,
-          model_filename="model_test_temp_8e4_content_2e4_style_8e8_disp_5e3_both_eyes",
-          temporal_weight=8e4, content_weight=2e4, style_weight=8e8, disp_weight=5e3)
+    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+          image_size=image_size, log_interval=100, checkpoint_interval=2000,
+          model_filename="colors_temp_7e4_content_3e4_style_1e9_disp_5e5_epochs_2_fine_tune",
+          temporal_weight=7e4, content_weight=3e4, style_weight=1e9, disp_weight=5e5, lr=2e-4,
+          model_init="colors_temp_7e4_content_3e4_style_1e9_disp_0_epochs_6.pth")
 
-    # train(dataset_path, style_image_path, model_dir, has_cuda, epochs=3, checkpoint_model_dir=checkpoint_model_dir,
-    #       image_size=image_size, log_interval=100, checkpoint_interval=4000,
-    #       model_filename="model_test_temp_8e4_content_2e4_style_8e8_disp_5e3_both_eyes",
-    #       temporal_weight=8e4, content_weight=2e4, style_weight=2.3e8, disp_weight=5e3)
+    train(dataset_path, style_image_path, model_dir, has_cuda, epochs=2, checkpoint_model_dir=checkpoint_model_dir,
+          image_size=image_size, log_interval=100, checkpoint_interval=2000,
+          model_filename="colors_temp_7e4_content_3e4_style_1e9_disp_1e6_epochs_2_fine_tune",
+          temporal_weight=7e4, content_weight=3e4, style_weight=1e9, disp_weight=1e6, lr=2e-4,
+          model_init="colors_temp_7e4_content_3e4_style_1e9_disp_0_epochs_6.pth")
+
 
 
 def show_pic_from_dataset():
@@ -175,19 +178,20 @@ def show_disparity_on_image(img_path, disparity_path):
     Image.fromarray(mask).show()
 
 
-# train_models()
+train_models()
 
 # img_path_left = "../Data/Monkaa/frames_cleanpass/eating_x2/left/0049.png"
 # img_path_right = "../Data/Monkaa/frames_cleanpass/eating_x2/right/0049.png"
 
-# img_path_left = "../Data/Monkaa/frames_cleanpass/eating_x2/left/0049.png"
-# img_path_right = "../Data/Monkaa/frames_cleanpass/eating_x2/right/0049.png"
+# img_path_left = "../Data/Monkaa/frames_cleanpass/family_x2/left/0030.png"
+# img_path_right = "../Data/Monkaa/frames_cleanpass/family_x2/right/0030.png"
+#
+# img_path_left = "images/content-images/cubic_left.jpg"
+# img_path_right = "images/content-images/cubic_right.jpg"
 
-img_path_left = "images/content-images/cubic_left.jpg"
-img_path_right = "images/content-images/cubic_right.jpg"
-
-model_path = "models/model_test_temp_7.5e4_content_1e4_style_8e8_disp_5e3_both_eyes.pth"
-show_stylized_image(img_path_left, img_path_right, model_path)
+# model_path = "models/checkpoint_models/colors_temp_1e4_content_3e4_style_1e9_disp_1e5_again_ckpt_epoch_4_batch_id_8000.pth"
+# model_path = "models/Colors/colors_temp_6e5_content_4e4_style_3e9_disp_1e6_epochs_6_detach.pth"
+# show_stylized_image(img_path_left, img_path_right, model_path)
 
 # img_path_left = "../Data/Monkaa/frames_cleanpass/treeflight_augmented1_x2/left/0358.png"
 # disparity_path = "../Data/Monkaa/disparity_resized/treeflight_augmented1_x2/left/0358.flo"
