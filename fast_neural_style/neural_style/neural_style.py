@@ -181,15 +181,13 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
 
     # save model
     transformer_net.eval().cpu()
-    # save_model_filename = "epoch_" + str(epochs) + "_" + str(time.ctime()).replace(' ', '_') + "_" + str(
-    #     content_weight) + "_" + str(style_weight) + ".model"
     save_model_path = os.path.join(save_model_dir, model_filename + ".pth")
     torch.save(transformer_net.state_dict(), save_model_path)
 
     print("\nDone, trained model saved at", save_model_path)
 
 
-def stylize(has_cuda, left_image, right_image, model, output_image_path=None, content_scale=None):
+def stylize(has_cuda, left_image, right_image, model):
     device = torch.device("cuda" if has_cuda else "cpu")
 
     content_transform = transforms.Compose([
@@ -218,39 +216,3 @@ def stylize(has_cuda, left_image, right_image, model, output_image_path=None, co
     output_right = utils.un_normalize_batch(output_right)
 
     return output_left[0], output_right[0]
-
-
-def main():
-    # TODO: This Doesn't Work. We changed image_path to image.
-    has_cuda = 1
-    # content_image_path = "../images/content-images/ofek_garden.jpg"
-    # output_image_path = "../images/output-images/ofek_garden-test.jpg"
-    # model = "../models/mosaic.pth"
-    # stylize(has_cuda, content_image_path, output_image_path, model)
-    #
-    # image_size = 256
-    # dataset_path = "../../Data/Monkaa"
-    # transform = transforms.Compose([
-    #     transforms.Resize(image_size),
-    #     transforms.CenterCrop(image_size),
-    #     transforms.ToTensor(),
-    #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    # ])
-    # train_dataset = MyDataSet(dataset_path, transform)  # remove if using all datasets
-    # train_loader = DataLoader(train_dataset, batch_size=1)
-    # counter = 0
-    # for frames in tqdm(train_loader):
-    #     (frames_curr, frames_next) = frames
-    #     frame_curr_left = frames_curr[0]
-    #     frame_curr_left = 255 * frame_curr_left.clone().clamp(0, 255).numpy()
-    #     frame_left = frame_curr_left.transpose(2, 3, 1, 0).astype("uint8")
-    #     frame_left = frame_left[:, :, :, 0]
-    #     frame_left = Image.fromarray(frame_left)
-    #     counter += 1
-    #     if counter == 124:
-    #         break
-    # frame_left.show()
-
-
-if __name__ == "__main__":
-    main()

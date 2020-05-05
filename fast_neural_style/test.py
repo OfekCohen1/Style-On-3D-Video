@@ -100,12 +100,6 @@ def show_flow_after_style():
     img = Image.fromarray(stylized_frame)
     img.show()
 
-    # img_next = Image.open("../Data/Monkaa/frames_cleanpass/eating_x2/left/0050.png")
-    # next_frame_stylized = stylize(has_cuda, img_next, model)
-    # stylized_frame = next_frame_stylized.clone().clamp(0, 255).numpy()
-    # stylized_frame = stylized_frame.astype("uint8")
-    # img_next = Image.fromarray(stylized_frame)
-    # img_next.show()
 
 
 def show_stylized_image(img_path_left, img_path_right, model_path):
@@ -161,12 +155,9 @@ def show_disparity_on_image(img_path, disparity_path):
 
     disparity = utils_dataset.read(disparity_path)
 
-    test_img = disparity / disparity.max() * 255
     disparity = disparity[..., ::] - np.zeros_like(disparity)
     disparity = torch.from_numpy(disparity)
     disparity = disparity.unsqueeze(0)
-    # temp = disparity[:, :, :, None]
-    # disparity = torch.cat((temp, torch.zeros_like(temp)), dim=3)
 
     new_image, mask = utils.apply_flow(img, disparity)
     new_image = np.asarray(255 * new_image).astype("uint8")
@@ -178,20 +169,22 @@ def show_disparity_on_image(img_path, disparity_path):
     Image.fromarray(mask).show()
 
 
-train_models()
+# train_models()
 
 # img_path_left = "../Data/Monkaa/frames_cleanpass/eating_x2/left/0049.png"
 # img_path_right = "../Data/Monkaa/frames_cleanpass/eating_x2/right/0049.png"
 
 # img_path_left = "../Data/Monkaa/frames_cleanpass/family_x2/left/0030.png"
 # img_path_right = "../Data/Monkaa/frames_cleanpass/family_x2/right/0030.png"
-#
-# img_path_left = "images/content-images/cubic_left.jpg"
-# img_path_right = "images/content-images/cubic_right.jpg"
+
+img_path_left = "images/content-images/cubic_left.jpeg"
+img_path_right = "images/content-images/cubic_right.jpeg"
 
 # model_path = "models/checkpoint_models/colors_temp_1e4_content_3e4_style_1e9_disp_1e5_again_ckpt_epoch_4_batch_id_8000.pth"
-# model_path = "models/Colors/colors_temp_6e5_content_4e4_style_3e9_disp_1e6_epochs_6_detach.pth"
-# show_stylized_image(img_path_left, img_path_right, model_path)
+# model_path = "models/Colors/colors_temp_7e4_content_3e4_style_1e9_disp_1e5_epochs_6_detach.pth"
+# model_path = "models/Colors/colors_temp_7e4_content_3e4_style_1e9_disp_1e5_epochs_6.pth"
+model_path = "models/Mosaic/model_test_temp_1e4_content_1e4_style_2.6e8_disp_1e4_both_eyes.pth"
+show_stylized_image(img_path_left, img_path_right, model_path)
 
 # img_path_left = "../Data/Monkaa/frames_cleanpass/treeflight_augmented1_x2/left/0358.png"
 # disparity_path = "../Data/Monkaa/disparity_resized/treeflight_augmented1_x2/left/0358.flo"

@@ -59,7 +59,7 @@ def fix_disparity(disparity):
                                                                             # the bounds of the image
                         temp[row, new_col] = col    # set the new original column of the current pixel in temp
                     else:
-                        disparity_fixed[row, col] = width + OUT_OF_BOUNDS     # if the new current pixel moved less then the already
+                        disparity_fixed[row, col] = width + OUT_OF_BOUNDS     # if the new current pixel moved less than the already
                                                             # existing pixel then change the disparity  of the current
                                                             # pixel to outside the bounds of the image
     return disparity_fixed
