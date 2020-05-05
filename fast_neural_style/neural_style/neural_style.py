@@ -59,7 +59,10 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
     #     train_dataset[video_name] = MyDataSet(video_dataset_path, transform)
     #     train_loader[video_name] = DataLoader(train_dataset[video_name], batch_size=batch_size)
 
-    train_dataset = MyDataSet(dataset_path, transform,
+    # video_dataset_path = os.path.join(dataset_path, "Monkaa")  # dataset_path = "Data/Monkaa"
+    train_dataset_path = os.path.join(dataset_path, "frames_cleanpass")
+    flow_path = os.path.join(dataset_path, "optical_flow_resized")
+    train_dataset = MyDataSet(train_dataset_path, flow_path, transform,
                               image_limit=image_limit)  # remove if using all datasets
     train_loader = DataLoader(train_dataset, batch_size=batch_size)
 
@@ -90,8 +93,9 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
     gram_style = [utils.gram_matrix(y) for y in features_style]
     for e in range(epochs):
         batch_num = 0
+        # for video_name in videos_list:
         for frames_and_flow in tqdm(train_loader):
-            (frames_curr_lr, flow_lr, frames_next_lr, disparity) = frames_and_flow
+            (frames_curr_lr, flow_lr, frames_next_lr) = frames_and_flow
             batch_num += 1
             total_loss = 0
 
@@ -116,10 +120,9 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
             # total_loss = disp_weight * disparity_loss_l2r
 
             for i in [0, 1]:  # Left,  Right
+                to_save = (batch_num + 1) % checkpoint_interval == 0
                 frame_curr = frames_curr_lr[i]
                 frame_next = frames_next_lr[i]
-                frame_curr = frame_curr.to(device)
-                frame_next = frame_next.to(device)
                 flow = flow_lr[i]
                 batch_size = len(frame_curr)
                 frame_style = frame_curr_style_combined[i]
@@ -152,9 +155,30 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
                     utils.save_image_loss(frame_next_to_save, namefile_frame_next)
                     utils.save_image_loss(frame_flow, namefile_frame_flow)
 
-            # After we ran on both eyes
-            total_loss.backward()
-            optimizer.step()
+                frame_curr = frame_curr.to(device)
+                frame_next = frame_next.to(device)
+                frames_batch = torch.cat((frame_curr, frame_next))
+                frames_style_batch = transformer_net(frames_batch)
+                # frame_style = transformer_net(frame_curr)
+                # frame_next_style = transformer_net(frame_next)
+                frame_style = frames_style_batch[0, ::].unsqueeze(0)  # add batch dim
+                frame_next_style = frames_style_batch[1, ::].unsqueeze(0)  # add batch dim
+                features_frame = vgg(frame_curr)
+                features_frame_style = vgg(frame_style)
+                # print(frame_curr.shape)
+                content_loss = losses.content_loss(features_frame, features_frame_style)
+                style_loss = losses.style_loss(features_frame_style, gram_style, batch_size)
+                if to_save:
+                    temporal_loss = losses.temporal_loss(frame_style, frame_next_style,
+                                                         flow, device, to_save=to_save, batch_num=batch_num, e=e)
+                else:
+                    temporal_loss = losses.temporal_loss(frame_style, frame_next_style, flow, device)
+                tv_loss = losses.tv_loss(frame_curr)
+
+                total_loss = (content_weight * content_loss + style_weight * style_loss
+                              + temporal_weight * temporal_loss)
+                total_loss.backward()
+                optimizer.step()
 
             if (batch_num + 1) % log_interval == 0:  # TODO: Choose between TQDM and printing
                 mesg = "{}\tEpoch {}:\t[{}/{}]\tcontent: {:.6f}\tstyle: {:.6f}\ttemporal: {:.6f}" \
@@ -171,7 +195,7 @@ def train(dataset_path, style_image_path, save_model_dir, has_cuda,
                 loss_list.append(losses_string)
                 utils.save_loss_file(loss_list, loss_filename)
 
-            if checkpoint_model_dir is not None and (batch_num + 1) % checkpoint_interval == 0:
+            if (checkpoint_model_dir is not None and (batch_num + 1) % checkpoint_interval == 0):
                 transformer_net.eval().cpu()
                 ckpt_model_filename = (model_filename + "_ckpt_epoch_" +
                                        str(e + 1) + "_batch_id_" + str(batch_num + 1) + ".pth")

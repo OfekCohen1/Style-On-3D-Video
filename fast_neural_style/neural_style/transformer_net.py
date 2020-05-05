@@ -5,6 +5,7 @@ class TransformerNet(torch.nn.Module):
     def __init__(self):
         super(TransformerNet, self).__init__()
         # Initial convolution layers
+
         self.conv1_left = ConvLayer(3, 32, kernel_size=9, stride=1)
         self.in1_left = torch.nn.InstanceNorm2d(32, affine=True)
         self.conv2_left = ConvLayer(32, 64, kernel_size=3, stride=2)

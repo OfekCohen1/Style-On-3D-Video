@@ -190,4 +190,3 @@ show_stylized_image(img_path_left, img_path_right, model_path)
 # disparity_path = "../Data/Monkaa/disparity_resized/treeflight_augmented1_x2/left/0358.flo"
 #
 # show_disparity_on_image(img_path_left,disparity_path)
-
