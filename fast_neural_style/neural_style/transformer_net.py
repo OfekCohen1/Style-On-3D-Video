@@ -5,40 +5,69 @@ class TransformerNet(torch.nn.Module):
     def __init__(self):
         super(TransformerNet, self).__init__()
         # Initial convolution layers
-        self.conv1 = ConvLayer(3, 32, kernel_size=9, stride=1)
-        self.in1 = torch.nn.InstanceNorm2d(32, affine=True)
-        self.conv2 = ConvLayer(32, 64, kernel_size=3, stride=2)
-        self.in2 = torch.nn.InstanceNorm2d(64, affine=True)
-        self.conv3 = ConvLayer(64, 128, kernel_size=3, stride=2)
-        self.in3 = torch.nn.InstanceNorm2d(128, affine=True)
+
+        self.conv1_left = ConvLayer(3, 32, kernel_size=9, stride=1)
+        self.in1_left = torch.nn.InstanceNorm2d(32, affine=True)
+        self.conv2_left = ConvLayer(32, 64, kernel_size=3, stride=2)
+        self.in2_left = torch.nn.InstanceNorm2d(64, affine=True)
+        self.conv3_left = ConvLayer(64, 96, kernel_size=3, stride=2)
+        self.in3_left = torch.nn.InstanceNorm2d(96, affine=True)
+
+        self.conv1_right = ConvLayer(3, 32, kernel_size=9, stride=1)
+        self.in1_right = torch.nn.InstanceNorm2d(32, affine=True)
+        self.conv2_right = ConvLayer(32, 64, kernel_size=3, stride=2)
+        self.in2_right = torch.nn.InstanceNorm2d(64, affine=True)
+        self.conv3_right = ConvLayer(64, 96, kernel_size=3, stride=2)
+        self.in3_right = torch.nn.InstanceNorm2d(96, affine=True)
+
         # Residual layers
-        self.res1 = ResidualBlock(128)
-        self.res2 = ResidualBlock(128)
-        self.res3 = ResidualBlock(128)
-        self.res4 = ResidualBlock(128)
-        self.res5 = ResidualBlock(128)
+        self.res1 = ResidualBlock(192)
+        self.res2 = ResidualBlock(192)
+        self.res3 = ResidualBlock(192)
+        self.res4 = ResidualBlock(192)
+        self.res5 = ResidualBlock(192)
+
         # Upsampling Layers
-        self.deconv1 = UpsampleConvLayer(128, 64, kernel_size=3, stride=1, upsample=2)
-        self.in4 = torch.nn.InstanceNorm2d(64, affine=True)
-        self.deconv2 = UpsampleConvLayer(64, 32, kernel_size=3, stride=1, upsample=2)
-        self.in5 = torch.nn.InstanceNorm2d(32, affine=True)
-        self.deconv3 = ConvLayer(32, 3, kernel_size=9, stride=1)
+        self.deconv1_left = UpsampleConvLayer(192, 96, kernel_size=3, stride=1, upsample=2)
+        self.in4_left = torch.nn.InstanceNorm2d(96, affine=True)
+        self.deconv2_left = UpsampleConvLayer(96, 48, kernel_size=3, stride=1, upsample=2)
+        self.in5_left = torch.nn.InstanceNorm2d(48, affine=True)
+        self.deconv3_left = ConvLayer(48, 3, kernel_size=9, stride=1)
+
+        self.deconv1_right = UpsampleConvLayer(192, 96, kernel_size=3, stride=1, upsample=2)
+        self.in4_right = torch.nn.InstanceNorm2d(96, affine=True)
+        self.deconv2_right = UpsampleConvLayer(96, 48, kernel_size=3, stride=1, upsample=2)
+        self.in5_right = torch.nn.InstanceNorm2d(48, affine=True)
+        self.deconv3_right = ConvLayer(48, 3, kernel_size=9, stride=1)
+
         # Non-linearities
         self.relu = torch.nn.ReLU()
 
-    def forward(self, X):
-        y = self.relu(self.in1(self.conv1(X)))
-        y = self.relu(self.in2(self.conv2(y)))
-        y = self.relu(self.in3(self.conv3(y)))
-        y = self.res1(y)
-        y = self.res2(y)
-        y = self.res3(y)
-        y = self.res4(y)
-        y = self.res5(y)
-        y = self.relu(self.in4(self.deconv1(y)))
-        y = self.relu(self.in5(self.deconv2(y)))
-        y = self.deconv3(y)
-        return y
+    def forward(self, img_left, img_right):
+        img_left = self.relu(self.in1_left(self.conv1_left(img_left)))
+        img_left = self.relu(self.in2_left(self.conv2_left(img_left)))
+        img_left = self.relu(self.in3_left(self.conv3_left(img_left)))
+
+        img_right = self.relu(self.in1_right(self.conv1_right(img_right)))
+        img_right = self.relu(self.in2_right(self.conv2_right(img_right)))
+        img_right = self.relu(self.in3_right(self.conv3_right(img_right)))
+
+        img_combined = torch.cat((img_left, img_right), 1)  # concat in channel dim
+
+        img_combined = self.res1(img_combined)
+        img_combined = self.res2(img_combined)
+        img_combined = self.res3(img_combined)
+        img_combined = self.res4(img_combined)
+        img_combined = self.res5(img_combined)
+
+        img_left = self.relu(self.in4_left(self.deconv1_left(img_combined)))
+        img_left = self.relu(self.in5_left(self.deconv2_left(img_left)))
+        img_left = self.deconv3_left(img_left)
+
+        img_right = self.relu(self.in4_right(self.deconv1_right(img_combined)))
+        img_right = self.relu(self.in5_right(self.deconv2_right(img_right)))
+        img_right = self.deconv3_right(img_right)
+        return img_left, img_right
 
 
 class ConvLayer(torch.nn.Module):

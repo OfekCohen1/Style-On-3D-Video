@@ -41,7 +41,9 @@ def un_normalize_batch(batch):
     # un- normalize imagenet mean and std
     mean = batch.new_tensor([0.485, 0.456, 0.406]).view(-1, 1, 1)
     std = batch.new_tensor([0.229, 0.224, 0.225]).view(-1, 1, 1)
-    return ((batch * std) + mean) * 255
+    new_batch = (batch * std) + mean
+    # new_batch =  (new_batch - torch.min(new_batch)) / ( torch.max(new_batch) - torch.min(new_batch))
+    return new_batch * 255
 
 
 def apply_flow(img, flow):
@@ -61,19 +63,19 @@ def apply_flow(img, flow):
     im_array = np.asarray(img_np)
     new_image = np.zeros_like(im_array)
 
-    # valid_indices = np.where((new_pixel_place[:, :, 0] >= 0) & (new_pixel_place[:, :, 0] < height) &
-    #                          (new_pixel_place[:, :, 1] >= 0) & (new_pixel_place[:, :, 1] < width))
-    # new_pixel_place = new_pixel_place[valid_indices[0], valid_indices[1], :]
-    # new_image[new_pixel_place[:, 0], new_pixel_place[:, 1], :] = im_array[valid_indices[0], valid_indices[1], :]
+    valid_indices = np.where((new_pixel_place[:, :, 0] >= 0) & (new_pixel_place[:, :, 0] < height) &
+                             (new_pixel_place[:, :, 1] >= 0) & (new_pixel_place[:, :, 1] < width))
+    new_pixel_place = new_pixel_place[valid_indices[0], valid_indices[1], :]
+    new_image[new_pixel_place[:, 0], new_pixel_place[:, 1], :] = im_array[valid_indices[0], valid_indices[1], :]
 
     # for row in range(height-1, 0, -1):
     #     for col in range(width-1, 0, -1):
-    for row in range(height - 1):
-        for col in range(width - 1):
-            new_row = new_pixel_place[row, col, 0]
-            new_col = new_pixel_place[row, col, 1]
-            if (new_row >= 0) & (new_row < height) & (new_col >= 0) & (new_col < width):
-                new_image[new_row, new_col, :] = im_array[row, col, :]
+    # for row in range(height - 1):
+    #     for col in range(width - 1):
+    #         new_row = new_pixel_place[row, col, 0]
+    #         new_col = new_pixel_place[row, col, 1]
+    #         if (new_row >= 0) & (new_row < height) & (new_col >= 0) & (new_col < width):
+    #             new_image[new_row, new_col, :] = im_array[row, col, :]
 
     mask = np.zeros_like(img_np)
     mask[new_pixel_place[:, 0], new_pixel_place[:, 1]] = 1

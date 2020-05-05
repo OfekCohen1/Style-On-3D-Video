@@ -6,12 +6,11 @@ import fast_neural_style.neural_style.utils_dataset as utils_dataset
 
 class MyDataSet(Dataset):
     """ Expects different videos to be in different files, ie: "Data/VideoName/Frame01" """  # TODO: Fix this doc
-    def __init__(self, train_dataset_path, flow_path, transform, image_limit = None):
-        self.flow_path = flow_path
-        # self.frame_path_left = os.path.join(self.data_path, "RGB_cleanpass", "left")
-        # self.id_list_left = os.listdir(self.frame_path_left)
-        # self.frame_path_right = os.path.join(self.data_path, "RGB_cleanpass", "right")
-        # self.id_list_right = os.listdir(self.frame_path_right)
+
+    def __init__(self, dataset_path, transform, image_limit=None):
+        self.train_dataset_path = os.path.join(dataset_path, "frames_cleanpass")
+        self.flow_path = os.path.join(dataset_path, "optical_flow_resized")
+        self.disparity_path = os.path.join(dataset_path, "disparity_resized")
         self.transform = transform
         self.pic_direcs_list = utils_dataset.get_pics_direcs(train_dataset_path, image_limit=image_limit)
 
